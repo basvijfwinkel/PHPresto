@@ -163,7 +163,11 @@ class PHPExcel_Style_Color extends PHPExcel_Style_Supervisor implements PHPExcel
 				$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($this->getStyleArray($pStyles));
 			} else {
 				if (array_key_exists('rgb', $pStyles)) {
-					$this->setRGB($pStyles['rgb']);
+					if (strlen($pStyles['rgb'] <= 6)) {
+						$this->setRGB($pStyles['rgb']);
+					} else {
+						$this->setARGB($pStyles['rgb']);
+					}
 				}
 				if (array_key_exists('argb', $pStyles)) {
 					$this->setARGB($pStyles['argb']);

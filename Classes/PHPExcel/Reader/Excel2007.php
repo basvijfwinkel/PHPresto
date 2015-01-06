@@ -945,12 +945,19 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 								foreach ($xmlSheet->conditionalFormatting as $conditional) {
 									foreach ($conditional->cfRule as $cfRule) {
 										if (
-											(
-												(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_NONE ||
-												(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CELLIS ||
-												(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT ||
-												(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_EXPRESSION
-											) && isset($dxfs[intval($cfRule["dxfId"])])
+												(
+													(
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_NONE ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CELLIS ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_EXPRESSION
+													) && isset($dxfs[intval($cfRule["dxfId"])])
+												)
+												||
+												(
+													// databars
+													(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR
+												)	
 										) {
 											$conditionals[(string) $conditional["sqref"]][intval($cfRule["priority"])] = $cfRule;
 										}
@@ -960,23 +967,38 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 								foreach ($conditionals as $ref => $cfRules) {
 									ksort($cfRules);
 									$conditionalStyles = array();
-									foreach ($cfRules as $cfRule) {
+									foreach ($cfRules as $priority => $cfRule) 
+									{
+										
 										$objConditional = new PHPExcel_Style_Conditional();
 										$objConditional->setConditionType((string)$cfRule["type"]);
-										$objConditional->setOperatorType((string)$cfRule["operator"]);
-
-										if ((string)$cfRule["text"] != '') {
-											$objConditional->setText((string)$cfRule["text"]);
+										$objConditional->setPriority($priority);
+										if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR)
+										{
+											// Databar properties
+										    // create a databar object
+											$databar = new PHPExcel_Style_DataBar();
+											// add default properties and possibly properties defined through an extLst 
+											$databar->applyFromXML($ref, $cfRule, (isset($xmlSheet->extLst))?$xmlSheet->extLst:null);
+											// store the Databar object with the conditional
+											$objConditional->setDataBar($databar);
 										}
+										else
+										{
+											$objConditional->setOperatorType((string)$cfRule["operator"]);
 
-										if (count($cfRule->formula) > 1) {
-											foreach ($cfRule->formula as $formula) {
-												$objConditional->addCondition((string)$formula);
+											if ((string)$cfRule["text"] != '') {
+												$objConditional->setText((string)$cfRule["text"]);
 											}
-										} else {
-											$objConditional->addCondition((string)$cfRule->formula);
+											if (count($cfRule->formula) > 1) {
+												foreach ($cfRule->formula as $formula) {
+													$objConditional->addCondition((string)$formula);
+												}
+											} else {
+												$objConditional->addCondition((string)$cfRule->formula);
+											}
+											$objConditional->setStyle(clone $dxfs[intval($cfRule["dxfId"])]);
 										}
-										$objConditional->setStyle(clone $dxfs[intval($cfRule["dxfId"])]);
 										$conditionalStyles[] = $objConditional;
 									}
 

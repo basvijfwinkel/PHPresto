@@ -35,6 +35,16 @@
  */
 class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_WriterPart
 {
+	const EXTLST_CONDITIONALFORMATTINGID = 14;
+
+	/**
+	* extLst data
+	* nested array, data grouped per grouptype (e.g. conditionalformatting rules)
+	*
+	* @var array
+	*/
+	private $_extlst = null;
+	
 	/**
 	 * Write worksheet to XML format
 	 *
@@ -55,6 +65,9 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 				$objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
 			}
 
+			// Clear the extLst
+			$this->clearExtLst();
+			
 			// XML header
 			$objWriter->startDocument('1.0','UTF-8','yes');
 
@@ -126,11 +139,17 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 
 				// LegacyDrawingHF
 				$this->_writeLegacyDrawingHF($objWriter, $pSheet);
+				
+				// extLst entries
+				$this->_writeExtLstEntries($objWriter, $pSheet);
 
 			$objWriter->endElement();
 
+			
 			// Return
-			return $objWriter->getData();
+			$result = $objWriter->getData();
+			echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
+			return $result;
 		} else {
 			throw new PHPExcel_Writer_Exception("Invalid PHPExcel_Worksheet object passed.");
 		}
@@ -470,68 +489,247 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 		$id = 1;
 
 		// Loop through styles in the current worksheet
+		$processedcellgroups = array(); // databar settings need to be applied as a group; not to each individual cell
 		foreach ($pSheet->getConditionalStylesCollection() as $cellCoordinate => $conditionalStyles) {
-			foreach ($conditionalStyles as $conditional) {
+			foreach ($conditionalStyles as $index => $conditional) {
 				// WHY was this again?
 				// if ($this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode( $conditional->getHashCode() ) == '') {
 				//	continue;
 				// }
 				if ($conditional->getConditionType() != PHPExcel_Style_Conditional::CONDITION_NONE) {
 					// conditionalFormatting
-					$objWriter->startElement('conditionalFormatting');
-					$objWriter->writeAttribute('sqref',	$cellCoordinate);
+					if (($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CELLIS) ||
+					    ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT) ||
+						($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_EXPRESSION))
+					{
+						$objWriter->startElement('conditionalFormatting');
+							$objWriter->writeAttribute('sqref',	$cellCoordinate);
 
-						// cfRule
-						$objWriter->startElement('cfRule');
-						$objWriter->writeAttribute('type',		$conditional->getConditionType());
-						$objWriter->writeAttribute('dxfId',		$this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode( $conditional->getHashCode() ));
-						$objWriter->writeAttribute('priority',	$id++);
+								// cfRule
+								$objWriter->startElement('cfRule');
+								$objWriter->writeAttribute('type',		$conditional->getConditionType());
+								$objWriter->writeAttribute('dxfId',		$this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode( $conditional->getHashCode() ));
+								$objWriter->writeAttribute('priority',	$id++);
 
-						if (($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CELLIS
-								||
-							 $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT)
-							&& $conditional->getOperatorType() != PHPExcel_Style_Conditional::OPERATOR_NONE) {
-							$objWriter->writeAttribute('operator',	$conditional->getOperatorType());
-						}
+								if (($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CELLIS
+										||
+									 $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT)
+									&& $conditional->getOperatorType() != PHPExcel_Style_Conditional::OPERATOR_NONE) {
+									$objWriter->writeAttribute('operator',	$conditional->getOperatorType());
+								}
 
-						if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							&& !is_null($conditional->getText())) {
-							$objWriter->writeAttribute('text',	$conditional->getText());
-						}
+								if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									&& !is_null($conditional->getText())) {
+									$objWriter->writeAttribute('text',	$conditional->getText());
+								}
 
-						if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_CONTAINSTEXT
-							&& !is_null($conditional->getText())) {
-							$objWriter->writeElement('formula',	'NOT(ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . ')))');
-						} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_BEGINSWITH
-							&& !is_null($conditional->getText())) {
-							$objWriter->writeElement('formula',	'LEFT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
-						} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_ENDSWITH
-							&& !is_null($conditional->getText())) {
-							$objWriter->writeElement('formula',	'RIGHT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
-						} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_NOTCONTAINS
-							&& !is_null($conditional->getText())) {
-							$objWriter->writeElement('formula',	'ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . '))');
-						} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CELLIS
-							|| $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
-							|| $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_EXPRESSION) {
-							foreach ($conditional->getConditions() as $formula) {
-								// Formula
-								$objWriter->writeElement('formula',	$formula);
-							}
-						}
+								if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_CONTAINSTEXT
+									&& !is_null($conditional->getText())) {
+									$objWriter->writeElement('formula',	'NOT(ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . ')))');
+								} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_BEGINSWITH
+									&& !is_null($conditional->getText())) {
+									$objWriter->writeElement('formula',	'LEFT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
+								} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_ENDSWITH
+									&& !is_null($conditional->getText())) {
+									$objWriter->writeElement('formula',	'RIGHT(' . $cellCoordinate . ',' . strlen($conditional->getText()) . ')="' . $conditional->getText() . '"');
+								} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									&& $conditional->getOperatorType() == PHPExcel_Style_Conditional::OPERATOR_NOTCONTAINS
+									&& !is_null($conditional->getText())) {
+									$objWriter->writeElement('formula',	'ISERROR(SEARCH("' . $conditional->getText() . '",' . $cellCoordinate . '))');
+								} else if ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CELLIS
+									|| $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT
+									|| $conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_EXPRESSION) {
+									foreach ($conditional->getConditions() as $formula) {
+										// Formula
+										$objWriter->writeElement('formula',	$formula);
+									}
+								}
 
+							$objWriter->endElement();
 						$objWriter->endElement();
-
-					$objWriter->endElement();
+					}
+					elseif ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR)  
+					{
+						// insert the databars element for the entire group
+						$databarobj = $conditional->getDataBar();
+						$cellgroup = $databarobj->getCellGroup();
+				
+						// databars are applied to a group of cells but their definition is just stored in one of the cells of the worksheet.
+						// to prevent 'A1' from clogging up with all databar definition, the definition for each group is
+						// assigned to the first cell of that group we envounter
+						if(!in_array(str_replace(':','_',$cellgroup),$processedcellgroups))
+						{
+							// definition needs to be assigned to this cell
+							// conditionalFormatting element
+							$objWriter->startElement('conditionalFormatting');
+							$objWriter->writeAttribute('sqref',	$cellgroup);
+								// cfRule  element
+								$objWriter->startElement('cfRule');
+								$objWriter->writeAttribute('type', $conditional->getConditionType());
+								$objWriter->writeAttribute('priority',	$conditional->getPriority());//$id++);
+									$objWriter->startElement('dataBar');
+									
+									
+										// add the non-optional elements
+										$cfvos = $databarobj->getCfvos();
+										//$objWriter->startElement('cfvo');
+											$this->_writeElement($objWriter, '' , $cfvos[0]->toArray());
+										//$objWriter->endElement();			
+										//$objWriter->startElement('cfvo');
+											$this->_writeElement($objWriter, '' , $cfvos[1]->toArray());
+										//$objWriter->endElement();
+										$objWriter->startElement('color');
+											$objWriter->writeAttribute('rgb', $databarobj->getColor()->getARGB());
+										$objWriter->endElement();											
+									$objWriter->endElement();
+									// check whether we need to add something to the extLst list
+									if ($databarobj->needsExtLstEntry())
+									{
+										// add an extlst link for this databar
+										$worksheet_cf_ns_id = 'x'.PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID; 
+										$objWriter->startElement('extLst');
+											$objWriter->startElement('ext');
+												$objWriter->writeAttribute('uri', '{B025F937-C7B1-47D3-B67F-A62EFF666E3E}'); //{B025F937-C7B1-47D3-B67F-A62EFF666E3E} = ext uri id : http://msdn.microsoft.com/en-us/library/dd905242%28v=office.12%29.aspx
+												$objuri = $databarobj->getNamespace();
+												$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $objuri);
+												$classid = $databarobj->getClassID();
+												$objWriter->writeElement($worksheet_cf_ns_id.':id',$classid);
+											$objWriter->endElement();
+										$objWriter->endElement();
+										
+										// add an entry to the extlst list (to be written at the end of the worksheet by _writeExtLstEntries)
+										$data = $databarobj->getExtLstData();
+										$this->addEntryToExtLstArray(PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID, $cellgroup, $classid, $data);
+									}
+								$objWriter->endElement();
+							$objWriter->endElement();
+							// mark this cellgroup as being processed
+							$processedcellgroups[] = str_replace(':','_',$cellgroup);
+							
+						}
+					}
 				}
 			}
 		}
 	}
+	
+	/**
+	 * Write extLst entries
+	 *
+	 * @param	PHPExcel_Shared_XMLWriter			$objWriter		XML Writer
+	 * @param	PHPExcel_Worksheet					$pSheet			Worksheet
+	 * @throws	PHPExcel_Writer_Exception
+	 */
+	private function _writeExtLstEntries(PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Worksheet $pSheet = null)
+	{
+		// write all data in the extlst array
+		$extlstarray = $this->getExtLstArray();
+		if ($extlstarray)
+		{
+			// start marker
+			$objWriter->startElement('extLst');
+			
+			// write it!
+			foreach($extlstarray as $groupid => $groupdata)
+			{
+				switch($groupid)
+				{
+					case PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID:
+								$this->_writeExtLstConditionalFormattings($groupid, $groupdata, $objWriter, $pSheet);
+							break;
+					default:
+								throw new PHPExcel_Writer_Exception("Unknown group .");
+							
+				}
+			}
+			
+			// end marker
+			$objWriter->endElement();
+		}
+	}
+	
+	private function _writeExtLstConditionalFormattings($groupid, $groupdata, PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Worksheet $pSheet = null)
+	{
+		$worksheet_cf_ns_id = 'x'.$groupid;
+		$ns_uri  = "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main";
+		$cf_uri  = "http://schemas.microsoft.com/office/excel/2006/main";
+		$ext_uri = "{78C0D931-6437-407d-A8EE-F0AAD7539E65}";
 
+		$objWriter->startElement('ext');
+			$objWriter->writeAttribute('uri', $ext_uri);
+			$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $ns_uri);
+				$objWriter->startElement($worksheet_cf_ns_id.':conditionalFormattings');
+
+					// write all rules for each cell group
+					foreach($groupdata as $cellref => $elementdata)
+					{
+						$objWriter->startElement($worksheet_cf_ns_id.':conditionalFormatting');
+							$objWriter->writeAttribute('xmlns:xm',$cf_uri);
+							// write each cfrule
+							foreach($elementdata as $ruleid => $cfrule)
+							{
+								$this->_writeElement($objWriter, $worksheet_cf_ns_id ,$cfrule);
+							}
+							// write cell reference 
+							$objWriter->writeElement('xm:sqref',str_replace('_',':',$cellref));
+						$objWriter->endElement();
+					}
+					
+				$objWriter->endElement();
+		$objWriter->endElement();
+		
+		
+	}
+	
+	private function _writeElement($objWriter, $prefix , $elementdata)
+	{
+		if (isset($elementdata['name']) && (isset($elementdata['attributes'])))
+		{
+			if (isset($elementdata['namespace'])) { $prefix= $elementdata['namespace']; } // hack
+			$elementname = ($prefix=="")?$elementdata['name']:$prefix.':'.$elementdata['name'];
+
+			if (isset($elementdata['attributes']['value']))
+			{
+				// single valued element				
+				$objWriter->writeElement($elementname, $elementdata['attributes']['value']);
+			}
+			else
+			{
+				// start this element
+				$objWriter->startElement($elementname);
+				
+				// add attributes 
+				foreach ($elementdata['attributes'] as $attributeproperties)
+				{
+					if (!is_array($attributeproperties['attributes']))
+					{
+						// attribute for this element
+						$objWriter->writeAttribute($attributeproperties['name'], (string)$attributeproperties['attributes']);
+					}
+				}
+				
+				// write nested elements
+				foreach ($elementdata['attributes'] as $attributeproperties)
+				{
+					if (is_array($attributeproperties['attributes']))
+					{
+						// nested element
+						$this->_writeElement($objWriter, $prefix, $attributeproperties);
+					}
+				}
+				// close this element
+				$objWriter->endElement();
+			}
+		}
+		else
+		{
+			throw new PHPExcel_Writer_Exception("_writeElement : missing name or attributes property:".var_export($elementdata,true));
+		}
+	}
+	
 	/**
 	 * Write DataValidations
 	 *
@@ -1217,4 +1415,46 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 			$objWriter->endElement();
 		}
 	}
+	
+		/** 
+	 * add an entry to the extlst array
+	 * @param	string	groupid (e.g. conditionalformattings)
+	 * @param	string	id of the data to be added
+	 * @param	array	data to be added
+	 * @throws PHPExcel_Exception
+	*/
+	protected function addEntryToExtLstArray($groupid, $cellgroup, $id, $data)
+	{
+		$ref = str_replace(':','_',$cellgroup);
+		if (!$this->_extlst) { $this->_extlst = array(); }
+		if (isset($this->_extlst[$groupid][$ref][$id]))
+		{
+			throw new PHPExcel_Exception('Unhandled situation : CLASSID '.$id.' is already used in the extlst list');
+		}
+		
+		if (!isset($this->_extlst[$groupid])) { $this->_extlst[$groupid] = array(); }
+		if (!isset($this->_extlst[$groupid][$ref])) { $this->_extlst[$groupid][$ref] = array(); }
+		
+		$this->_extlst[$groupid][$ref][$id] = $data;
+	}
+	
+	/**
+	 * return the extLst array
+	 *
+	 * @returns	array	extLst array
+	 */
+	protected function getExtLstArray()
+	{
+		return $this->_extlst;
+	}
+	
+	/**
+	 * Clear the extLst
+	 *
+	 */
+	protected function clearExtLst()
+	{
+		$this->_extLst = null;
+	}
+
 }

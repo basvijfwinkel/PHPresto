@@ -40,6 +40,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	const CONDITION_CELLIS					= 'cellIs';
 	const CONDITION_CONTAINSTEXT			= 'containsText';
 	const CONDITION_EXPRESSION 				= 'expression';
+	const CONDITION_DATABAR 				= 'dataBar';
 
 	/* Operator types */
 	const OPERATOR_NONE						= '';
@@ -62,6 +63,14 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	 */
 	private $_conditionType;
 
+	/**
+	 *
+	 * Priority
+	 *
+	 * @var int
+	 */
+	private $_priority;
+	 
 	/**
 	 * Operator type
 	 *
@@ -90,6 +99,12 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	 */
 	private $_style;
 
+	/**
+	 * DataBar
+	 *
+	 */
+	private $_databar;
+	
     /**
      * Create a new PHPExcel_Style_Conditional
      */
@@ -99,6 +114,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	$this->_conditionType		= PHPExcel_Style_Conditional::CONDITION_NONE;
     	$this->_operatorType		= PHPExcel_Style_Conditional::OPERATOR_NONE;
     	$this->_text    			= null;
+		$this->_priority			= 0;
     	$this->_condition			= array();
     	$this->_style				= new PHPExcel_Style(FALSE, TRUE);
     }
@@ -122,6 +138,26 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	$this->_conditionType = $pValue;
     	return $this;
     }
+	 /**
+     * Get priority 
+     *
+     * @return int (0 if not set)
+     */
+    public function getPriority() {
+    	return $this->_priority;
+    }
+
+    /**
+     * Set priority
+     *
+     * @param int $pValue	priority
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setPriority($pValue = 0) {
+    	$this->_priority = $pValue;
+    	return $this;
+    }
+	
 
     /**
      * Get Operator type
@@ -254,6 +290,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	public function getHashCode() {
     	return md5(
     		  $this->_conditionType
+			. $this->_priority
     		. $this->_operatorType
     		. implode(';', $this->_condition)
     		. $this->_style->getHashCode()
@@ -274,4 +311,41 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 			}
 		}
 	}
+	
+	/*
+	* return the databar object that is related to this conditional
+	*
+	* @return 	PHPExcel_Style_DataBar	related databar object
+	* @throws	PHPExcel_Exception	in case condition type is not  CONDITION_DATABAR 
+	*/
+	public function getDataBar()
+	{
+		if ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR)
+		{
+			return $this->_databar;
+		}
+		else
+		{
+			throw new PHPExcel_Exception("ConditionType is not a databar so no databar object could be returned.");
+		}
+	}
+	
+	/*
+	* set databar object that is related to this conditional
+	*
+	*/
+	public function setDataBar($databar)
+	{
+		if ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR)
+		{
+			$this->_databar = $databar;
+			return $this;
+		}
+		else
+		{
+			throw new PHPExcel_Exception("ConditionType is not a databar so no databar object could be assigned.");
+		}
+		
+	}
+
 }

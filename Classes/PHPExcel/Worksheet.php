@@ -331,7 +331,7 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
     * @var string
     */
     private $_codeName = null;
-
+	
 	/**
      * Create a new worksheet
      *
@@ -1467,9 +1467,9 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
      */
     public function getConditionalStylesCollection()
     {
-        return $this->_conditionalStylesCollection;
-    }
-
+		return $this->_conditionalStylesCollection;
+    }	
+	
     /**
      * Set conditional styles
      *
@@ -2914,4 +2914,5 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
 	public function hasCodeName(){
 		return !(is_null($this->_codeName));
 	}
+	
 }
