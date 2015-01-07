@@ -148,7 +148,9 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 			
 			// Return
 			$result = $objWriter->getData();
+			/* debug */
 			echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
+			/* debug */
 			return $result;
 		} else {
 			throw new PHPExcel_Writer_Exception("Invalid PHPExcel_Worksheet object passed.");
@@ -489,7 +491,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 		$id = 1;
 
 		// Loop through styles in the current worksheet
-		$processedcellgroups = array(); // databar settings need to be applied as a group; not to each individual cell
+		$processedcellgroups = array(); // conditional formats like databar settings need to be applied as a group; not to each individual cell
 		foreach ($pSheet->getConditionalStylesCollection() as $cellCoordinate => $conditionalStyles) {
 			foreach ($conditionalStyles as $index => $conditional) {
 				// WHY was this again?
@@ -551,11 +553,12 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 							$objWriter->endElement();
 						$objWriter->endElement();
 					}
-					elseif ($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR)  
+					elseif (($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
+							($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE))
 					{
 						// insert the databars element for the entire group
-						$databarobj = $conditional->getDataBar();
-						$cellgroup = $databarobj->getCellGroup();
+						$conditionalObj = $conditional->getConditionalObject();
+						$cellgroup = $conditionalObj->getCellGroup();
 				
 						// databars are applied to a group of cells but their definition is just stored in one of the cells of the worksheet.
 						// to prevent 'A1' from clogging up with all databar definition, the definition for each group is
@@ -570,38 +573,27 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 								$objWriter->startElement('cfRule');
 								$objWriter->writeAttribute('type', $conditional->getConditionType());
 								$objWriter->writeAttribute('priority',	$conditional->getPriority());//$id++);
-									$objWriter->startElement('dataBar');
 									
+									// write out the dataBar element with the default properties
+									$this->_writeElement($objWriter, '' , $conditionalObj->getDefaultData());
 									
-										// add the non-optional elements
-										$cfvos = $databarobj->getCfvos();
-										//$objWriter->startElement('cfvo');
-											$this->_writeElement($objWriter, '' , $cfvos[0]->toArray());
-										//$objWriter->endElement();			
-										//$objWriter->startElement('cfvo');
-											$this->_writeElement($objWriter, '' , $cfvos[1]->toArray());
-										//$objWriter->endElement();
-										$objWriter->startElement('color');
-											$objWriter->writeAttribute('rgb', $databarobj->getColor()->getARGB());
-										$objWriter->endElement();											
-									$objWriter->endElement();
 									// check whether we need to add something to the extLst list
-									if ($databarobj->needsExtLstEntry())
+									if ($conditionalObj->needsExtLstEntry())
 									{
 										// add an extlst link for this databar
 										$worksheet_cf_ns_id = 'x'.PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID; 
 										$objWriter->startElement('extLst');
 											$objWriter->startElement('ext');
 												$objWriter->writeAttribute('uri', '{B025F937-C7B1-47D3-B67F-A62EFF666E3E}'); //{B025F937-C7B1-47D3-B67F-A62EFF666E3E} = ext uri id : http://msdn.microsoft.com/en-us/library/dd905242%28v=office.12%29.aspx
-												$objuri = $databarobj->getNamespace();
+												$objuri = $conditionalObj->getNamespace();
 												$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $objuri);
-												$classid = $databarobj->getClassID();
+												$classid = $conditionalObj->getClassID();
 												$objWriter->writeElement($worksheet_cf_ns_id.':id',$classid);
 											$objWriter->endElement();
 										$objWriter->endElement();
 										
 										// add an entry to the extlst list (to be written at the end of the worksheet by _writeExtLstEntries)
-										$data = $databarobj->getExtLstData();
+										$data = $conditionalObj->getExtLstData();
 										$this->addEntryToExtLstArray(PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID, $cellgroup, $classid, $data);
 									}
 								$objWriter->endElement();
@@ -654,20 +646,17 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 	private function _writeExtLstConditionalFormattings($groupid, $groupdata, PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Worksheet $pSheet = null)
 	{
 		$worksheet_cf_ns_id = 'x'.$groupid;
-		$ns_uri  = "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main";
-		$cf_uri  = "http://schemas.microsoft.com/office/excel/2006/main";
-		$ext_uri = "{78C0D931-6437-407d-A8EE-F0AAD7539E65}";
 
 		$objWriter->startElement('ext');
-			$objWriter->writeAttribute('uri', $ext_uri);
-			$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $ns_uri);
+			$objWriter->writeAttribute('uri', "{78C0D931-6437-407d-A8EE-F0AAD7539E65}");
+			$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, "http://schemas.microsoft.com/office/spreadsheetml/2009/9/main");
 				$objWriter->startElement($worksheet_cf_ns_id.':conditionalFormattings');
 
 					// write all rules for each cell group
 					foreach($groupdata as $cellref => $elementdata)
 					{
 						$objWriter->startElement($worksheet_cf_ns_id.':conditionalFormatting');
-							$objWriter->writeAttribute('xmlns:xm',$cf_uri);
+							$objWriter->writeAttribute('xmlns:xm', "http://schemas.microsoft.com/office/excel/2006/main");
 							// write each cfrule
 							foreach($elementdata as $ruleid => $cfrule)
 							{
@@ -688,12 +677,17 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 	{
 		if (isset($elementdata['name']) && (isset($elementdata['attributes'])))
 		{
-			if (isset($elementdata['namespace'])) { $prefix= $elementdata['namespace']; } // hack
+			// if the element has a namespace defined, use it instead of the default namespace
+			if (isset($elementdata['namespace'])) 
+			{ 
+				$prefix= $elementdata['namespace']; 
+			} 
+			// generate the name (+ namespace prefix) for this elemet
 			$elementname = ($prefix=="")?$elementdata['name']:$prefix.':'.$elementdata['name'];
 
 			if (isset($elementdata['attributes']['value']))
 			{
-				// single valued element				
+				// single valued element e.g. <xm:f>5</xm:f>				
 				$objWriter->writeElement($elementname, $elementdata['attributes']['value']);
 			}
 			else
@@ -701,7 +695,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 				// start this element
 				$objWriter->startElement($elementname);
 				
-				// add attributes 
+				// add attributes (e.g type in <cfvo type='3'>)
 				foreach ($elementdata['attributes'] as $attributeproperties)
 				{
 					if (!is_array($attributeproperties['attributes']))
@@ -711,7 +705,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 					}
 				}
 				
-				// write nested elements
+				// write nested elements (e.g color element in <cfvo><color rgb="FFFFFF00"></cfvo>)
 				foreach ($elementdata['attributes'] as $attributeproperties)
 				{
 					if (is_array($attributeproperties['attributes']))

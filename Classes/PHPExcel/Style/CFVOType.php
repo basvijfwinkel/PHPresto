@@ -72,7 +72,9 @@ class PHPExcel_Style_CFVOType
 	
 	protected function addAdditionalData($data)
 	{
-		if ($this->_type == PHPExcel_Style_CFVOType::PERCENTILE)
+		if (($this->_type == PHPExcel_Style_CFVOType::PERCENTILE) ||
+			($this->_type == PHPExcel_Style_CFVOType::PERCENT) ||
+			($this->_type == PHPExcel_Style_CFVOType::NUM))
 		{
 			// there should be an <xm:f>0000</xm:f> child object or a val object if type is PERCENTILE
 			if (isset($data['xm:f']))
@@ -110,6 +112,9 @@ class PHPExcel_Style_CFVOType
 				case 'max':
 									return new PHPExcel_Style_CFVOType(PHPExcel_Style_CFVOType::MAX, $data);
 									break;
+				case 'percent':
+									return new PHPExcel_Style_CFVOType(PHPExcel_Style_CFVOType::PERCENT, $data);
+									break;
 				case 'min':
 									return new PHPExcel_Style_CFVOType(PHPExcel_Style_CFVOType::MIN, $data);
 									break;
@@ -128,7 +133,7 @@ class PHPExcel_Style_CFVOType
 			}
 		}
 		// unknown type
-		throw new PHPExcel_Exception("Invalid CFVOType value passed.");
+		throw new PHPExcel_Exception("Invalid CFVOType value passed.:".$type);
 	}
 	
 	public static function fromXML($data)
@@ -168,7 +173,9 @@ class PHPExcel_Style_CFVOType
 	 */
 	public function toArray($forExtLst = false, $name = 'cfvo')
 	{
-		if ($this->_type == PHPExcel_Style_CFVOType::PERCENTILE)
+		if (($this->_type == PHPExcel_Style_CFVOType::PERCENTILE) ||
+			($this->_type == PHPExcel_Style_CFVOType::PERCENT) ||
+			($this->_type == PHPExcel_Style_CFVOType::NUM))		
 		{
 			if ($forExtLst)
 			{

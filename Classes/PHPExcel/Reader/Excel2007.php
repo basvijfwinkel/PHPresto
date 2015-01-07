@@ -957,7 +957,12 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 												(
 													// databars
 													(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR
-												)	
+												)
+												||
+												(
+													// colorScale
+													(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE
+												)
 										) {
 											$conditionals[(string) $conditional["sqref"]][intval($cfRule["priority"])] = $cfRule;
 										}
@@ -981,8 +986,19 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 											// add default properties and possibly properties defined through an extLst 
 											$databar->applyFromXML($ref, $cfRule, (isset($xmlSheet->extLst))?$xmlSheet->extLst:null);
 											// store the Databar object with the conditional
-											$objConditional->setDataBar($databar);
+											$objConditional->setConditionalObject($databar);
 										}
+										else if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE)
+										{
+											// ColorScale properties
+										    // create a colorscale object
+											$colorScale = new PHPExcel_Style_ColorScale();
+											// add default properties and possibly properties defined through an extLst 
+											$colorScale->applyFromXML($ref, $cfRule);
+											// store the ColorScale object with the conditional
+											$objConditional->setConditionalObject($colorScale);
+										}
+										
 										else
 										{
 											$objConditional->setOperatorType((string)$cfRule["operator"]);

@@ -1,8 +1,6 @@
 <?php
 /*
 TODO : 
-- extlst : reference to cells : <xm:sqref>A1:A5</xm:sqref>
-- <x14:cfvo type="percentile"><xm:f>10</xm:f></x14:cfvo>
 
 - check : if priority of 2 databars work correctly
 - consider : preserve CLASSID?
@@ -220,7 +218,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 				$this->_axisColor ||
 				!is_null($this->_minLength) ||
 				!is_null($this->_maxLength) ||
-				!is_null($this->_showValue) ||
+				//!is_null($this->_showValue) ||
 				!is_null($this->_border) ||
 				!is_null($this->_gradient) ||
 				$this->_direction ||
@@ -248,7 +246,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	 *			'axisColor' => '7F7F7F',
 	 *			'minLength' => 20,
 	 *          'maxLength' => 70,
-	 *			'showValue' => 0,
+	 *			//'showValue' => 0,
 	 *			'direction' => 'context',
 	 *          'axisPosition' => 'middle',
 	 *          'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
@@ -259,7 +257,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	 * @param	array	$pStyles	Array containing style information
 	 * @param   boolean	$checkInput	set to true if the validity of the data must be checked (Excel2010 does not seem to follow the specifications...)
 	 * @param	boolean	$isExtLstData	set to true if the data is from an extlst block (cfvo data will be stored separately)
-	 * @return PHPExcel_Style_Border
+	 * @return PHPExcel_Style_DataBar
 	 * Note : cfvos parameter will override all existing cfvo values; If you want to preserve them, add them manually with addCfvo
 	 */
 	public function applyFromArray($pStyles = null, $checkInput=true, $isExtLstData= false) {
@@ -328,6 +326,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	* @param	SimpleXML $cfRule	cfRule xml structure containing the databar section
 	* @param	SimpleXML	$extLst	extLst structure of the worksheet the databar object is defined for
 	* @return	Array	array containing all the information of the input xml object 
+	* @throws PHPExcel_Exception
 	*/
 	public function applyFromXML($ref, $cfRule, $extLst)
 	{
@@ -343,6 +342,10 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 			$this->_cfvos = array(); // clear our the list before adding new ones
 			$this->addCfvo(PHPExcel_Style_CFVOType::fromXML($cfRule->dataBar->cfvo[0]));
 			$this->addCfvo(PHPExcel_Style_CFVOType::fromXML($cfRule->dataBar->cfvo[1]));
+			if (isset($cfRule->dataBar['showValue']))
+			{
+				$this->setShowValue((int)$cfRule->dataBar['showValue']) ;
+			}
 			
 			// check if an extLst object is used to mark up this databar
 			if (isset($cfRule->extLst) &&
@@ -520,10 +523,11 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 			$result[] = array('name' => 'maxLength', 'attributes' => $this->_maxLength);
 		}
 		// 11. showValue
-		if (!is_null($this->_showValue))
+		// Excel stores this attribute in the dataBar element
+		/*if (!is_null($this->_showValue))
 		{
 			$result[] = array('name' => 'showValue', 'attributes' => $this->_showValue);
-		}
+		}*/
 		// 12. borderColor (only id borderColor also exists)
 		if (($this->_border) && ($this->_borderColor))
 		{
@@ -1296,6 +1300,24 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 											   array('name' => 'dataBar','attributes' => $data)));
 		
 		return $result;
-}
+	}
+	
+	/*
+	 * create a datastructure for creating the databar element with default properties
+	 *
+	 * @param	array	array with properties 
+	 */
+	public function getDefaultData()
+	{
+		$cfvos = $this->getCfvos();
+		$result = array('name' => 'dataBar',
+		                'attributes' => array($cfvos[0]->toArray(),
+											  $cfvos[1]->toArray(),
+											  array('name' => 'color', 'attributes' => array(array('name' => 'rgb', 'attributes' => $this->getColor()->getARGB())))
+											  )
+						);
+		if (!is_null($this->_showValue)) { $result['attributes'][] = array('name' => 'showValue' , 'attributes' => $this->_showValue); }
+		return $result;
+	}
 
 }
