@@ -578,6 +578,21 @@ class PHPExcel_Style extends PHPExcel_Style_Supervisor implements PHPExcel_IComp
         return $this;
     }
 
+	/**
+     * Add a Conditional Style. Only used on supervisor.
+     *
+     * @param PHPExcel_Style_Conditional $pValue conditional style
+     * @return PHPExcel_Style
+     */
+    
+    public function addConditionalStyle($pValue = null)
+    {
+        if ($pValue) {
+            $this->getActiveSheet()->addConditionalStyle($this->getSelectedCells(), $pValue);
+        }
+        return $this;
+    }
+
     /**
      * Get Protection
      *

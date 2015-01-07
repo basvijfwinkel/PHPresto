@@ -127,10 +127,11 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	*
 	* @param	string	$ref	cell reference (e.g A1:A5)
 	* @param	SimpleXML $cfRule	cfRule xml structure containing the colorscale section
+	* @param	--		not used
 	* @return	Array	array containing all the information of the input xml object 
 	* @throws PHPExcel_Exception
 	*/
-	public function applyFromXML($ref, $cfRule)
+	public function applyFromXML($ref, $cfRule, $extst=null)
 	{
 		// these default properties must exist
 		if (isset($cfRule->colorScale->color) &&
@@ -415,5 +416,34 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	{
 		return false;
 	}
+	
+	/*
+	 * Indicates whether this object needs a reference to the entry in the extLst section
+	 *
+	 * @returns	bool	true is such a reference is needed
+	 *
+	 */
+	 public function needsExtLstReference()
+	 {
+		return true;
+	 }
+	 
+	 	/*
+	 * Get a unique classID for this object
+	 *
+	 * @return	string	CLASSID v3 string : e.g. {1546058F-5A25-4334-85AE-E68F2A44BBAF}
+	 *
+	 */
+	public function getClassID()
+	{
+		$hash = $this->getHashCode();
+		return sprintf('{%08s-%04s-%04x-%04x-%12s}',
+						substr($hash, 0, 8),
+						substr($hash, 8, 4),
+						(hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x3000,
+						 (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
+						  substr($hash, 20, 12));
+	}
+
 
 }

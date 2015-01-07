@@ -149,7 +149,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 			// Return
 			$result = $objWriter->getData();
 			/* debug */
-			echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
+			//echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
 			/* debug */
 			return $result;
 		} else {
@@ -491,7 +491,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 		$id = 1;
 
 		// Loop through styles in the current worksheet
-		$processedcellgroups = array(); // conditional formats like databar settings need to be applied as a group; not to each individual cell
+		$processedcellgroups = array(); // conditional formats like databar/colorscale/iconset settings need to be applied as a group; not to each individual cell
 		foreach ($pSheet->getConditionalStylesCollection() as $cellCoordinate => $conditionalStyles) {
 			foreach ($conditionalStyles as $index => $conditional) {
 				// WHY was this again?
@@ -554,50 +554,66 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 						$objWriter->endElement();
 					}
 					elseif (($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
-							($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE))
+							($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) ||
+							($conditional->getConditionType() == PHPExcel_Style_Conditional::CONDITION_ICONSET))
 					{
-						// insert the databars element for the entire group
+						// insert the element for the entire group
 						$conditionalObj = $conditional->getConditionalObject();
 						$cellgroup = $conditionalObj->getCellGroup();
 				
-						// databars are applied to a group of cells but their definition is just stored in one of the cells of the worksheet.
-						// to prevent 'A1' from clogging up with all databar definition, the definition for each group is
+						// databars/colorscales/iconsets are applied to a group of cells but their definition is just stored in one of the cells of the worksheet.
+						// to prevent 'A1' from clogging up with all definition, the definition for each group is
 						// assigned to the first cell of that group we envounter
 						if(!in_array(str_replace(':','_',$cellgroup),$processedcellgroups))
 						{
-							// definition needs to be assigned to this cell
-							// conditionalFormatting element
-							$objWriter->startElement('conditionalFormatting');
-							$objWriter->writeAttribute('sqref',	$cellgroup);
-								// cfRule  element
-								$objWriter->startElement('cfRule');
-								$objWriter->writeAttribute('type', $conditional->getConditionType());
-								$objWriter->writeAttribute('priority',	$conditional->getPriority());//$id++);
-									
-									// write out the dataBar element with the default properties
-									$this->_writeElement($objWriter, '' , $conditionalObj->getDefaultData());
-									
-									// check whether we need to add something to the extLst list
-									if ($conditionalObj->needsExtLstEntry())
-									{
-										// add an extlst link for this databar
-										$worksheet_cf_ns_id = 'x'.PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID; 
-										$objWriter->startElement('extLst');
-											$objWriter->startElement('ext');
-												$objWriter->writeAttribute('uri', '{B025F937-C7B1-47D3-B67F-A62EFF666E3E}'); //{B025F937-C7B1-47D3-B67F-A62EFF666E3E} = ext uri id : http://msdn.microsoft.com/en-us/library/dd905242%28v=office.12%29.aspx
-												$objuri = $conditionalObj->getNamespace();
-												$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $objuri);
-												$classid = $conditionalObj->getClassID();
-												$objWriter->writeElement($worksheet_cf_ns_id.':id',$classid);
-											$objWriter->endElement();
-										$objWriter->endElement();
+							$defaultdata = $conditionalObj->getDefaultData();
+							$classid = $conditionalObj->getClassID();
+							$priority = $conditional->getPriority();
+							
+							if ($defaultdata)
+							{
+								// definition needs to be assigned to this cell
+								// conditionalFormatting element
+								$objWriter->startElement('conditionalFormatting');
+								$objWriter->writeAttribute('sqref',	$cellgroup);
+									// cfRule  element
+									$objWriter->startElement('cfRule');
+									$objWriter->writeAttribute('type', $conditional->getConditionType());
+									$objWriter->writeAttribute('priority',	$priority);//$id++);
 										
-										// add an entry to the extlst list (to be written at the end of the worksheet by _writeExtLstEntries)
-										$data = $conditionalObj->getExtLstData();
-										$this->addEntryToExtLstArray(PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID, $cellgroup, $classid, $data);
-									}
+										// write out the dataBar/ColorScale/IconSet element with the default properties
+										// some iconsets do not have default data (e.g custom icon sets)
+										$this->_writeElement($objWriter, '' , $defaultdata);
+										
+										// check whether we need to add something to the extLst list
+										if ($conditionalObj->needsExtLstEntry())
+										{
+											if ($conditionalObj->needsExtLstReference())
+											{
+												// add an extlst link for this element (only dataBar so far)
+												$worksheet_cf_ns_id = 'x'.PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID; 
+												$objWriter->startElement('extLst');
+													$objWriter->startElement('ext');
+														$objWriter->writeAttribute('uri', '{B025F937-C7B1-47D3-B67F-A62EFF666E3E}'); //{B025F937-C7B1-47D3-B67F-A62EFF666E3E} = ext uri id : http://msdn.microsoft.com/en-us/library/dd905242%28v=office.12%29.aspx
+														$objuri = $conditionalObj->getNamespace();
+														$objWriter->writeAttribute('xmlns:'.$worksheet_cf_ns_id, $objuri);
+														$objWriter->writeElement($worksheet_cf_ns_id.':id',$classid);
+													$objWriter->endElement();
+												$objWriter->endElement();
+											}
+										}
+									$objWriter->endElement();
 								$objWriter->endElement();
-							$objWriter->endElement();
+							}
+							
+							if ($conditionalObj->needsExtLstEntry())
+							{
+									// add an entry to the extlst list (to be written at the end of the worksheet by _writeExtLstEntries)
+									$data = $conditionalObj->getExtLstData($priority);
+									$this->addEntryToExtLstArray(PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID, $cellgroup, $classid, $data);
+							}
+							
+							
 							// mark this cellgroup as being processed
 							$processedcellgroups[] = str_replace(':','_',$cellgroup);
 							

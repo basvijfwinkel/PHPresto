@@ -42,6 +42,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	const CONDITION_EXPRESSION 				= 'expression';
 	const CONDITION_DATABAR 				= 'dataBar';
 	const CONDITION_COLORSCALE 				= 'colorScale';
+	const CONDITION_ICONSET					= 'iconSet';
 
 	/* Operator types */
 	const OPERATOR_NONE						= '';
@@ -317,12 +318,13 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	* return the Condition object that is related to this conditional
 	*
 	* @return 	PHPExcel_Style_DataBar or PHPExcel_Style_ColorScale	object
-	* @throws	PHPExcel_Exception	in case condition type is not  CONDITION_DATABAR or CONDITION_COLORSCALE
+	* @throws	PHPExcel_Exception	in case condition type is not  CONDITION_DATABAR or CONDITION_COLORSCALE or CONDITION_ICONSET
 	*/
 	public function getConditionalObject()
 	{
 		if (($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
-		    ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_COLORSCALE))
+		    ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) ||
+			($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_ICONSET))
 		{
 			return $this->_conditionObject;
 		}
@@ -333,22 +335,30 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	}
 	
 	/*
-	* set conditional object (Databar, Colorscale) that is related to this conditional
+	* set conditional object (Databar, Colorscale, IconSet) that is related to this conditional
 	*
 	*/
-	public function setConditionalObject($obj)
+	public function setConditionalObject($ref, $rule, $extLst)
 	{
-		if (($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
-		    ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_COLORSCALE))
+		// create the object
+		if ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR)
 		{
-			$this->_conditionObject = $obj;
-			return $this;
+			$this->_conditionObject = new PHPExcel_Style_DataBar();
+		}
+		elseif    ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_COLORSCALE)
+		{
+			$this->_conditionObject = new PHPExcel_Style_ColorScale();
+		}
+		elseif	($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_ICONSET)
+		{
+			$this->_conditionObject = new PHPExcel_Style_IconSet();
 		}
 		else
 		{
-			throw new PHPExcel_Exception("ConditionType is not a databar or colorscale.");
+			throw new PHPExcel_Exception("type is not a databar, colorscale or iconset.");
 		}
-		
+		// initialize the object
+		$this->_conditionObject->applyFromXML($ref, $rule, $extLst);
 	}
 
 }

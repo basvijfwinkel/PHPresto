@@ -79,11 +79,11 @@ class PHPExcel_Style_CFVOType
 			// there should be an <xm:f>0000</xm:f> child object or a val object if type is PERCENTILE
 			if (isset($data['xm:f']))
 			{
-				$this->_childValue = $data['xm:f'];
+				$this->_childValue = (string)$data['xm:f'];
 			}
 			elseif (isset($data['val']))
 			{
-				$this->_childValue = $data['val'];
+				$this->_childValue = (string)$data['val'];
 			}
 		}
 	}

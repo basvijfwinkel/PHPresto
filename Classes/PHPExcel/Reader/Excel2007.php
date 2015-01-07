@@ -940,6 +940,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 								}
 							}
 
+							// -- conditional formatting
 							$conditionals = array();
 							if (!$this->_readDataOnly && $xmlSheet && $xmlSheet->conditionalFormatting) {
 								foreach ($xmlSheet->conditionalFormatting as $conditional) {
@@ -952,18 +953,12 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT ||
 														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_EXPRESSION
 													) && isset($dxfs[intval($cfRule["dxfId"])])
-												)
-												||
-												(
-													// databars
-													(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR
-												)
-												||
-												(
-													// colorScale
-													(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE
-												)
-										) {
+												) ||
+												((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
+												((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) ||
+												((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_ICONSET)
+											)
+										{
 											$conditionals[(string) $conditional["sqref"]][intval($cfRule["priority"])] = $cfRule;
 										}
 									}
@@ -978,27 +973,13 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 										$objConditional = new PHPExcel_Style_Conditional();
 										$objConditional->setConditionType((string)$cfRule["type"]);
 										$objConditional->setPriority($priority);
-										if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR)
+										if (((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
+										    ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) ||
+										    ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_ICONSET))
 										{
-											// Databar properties
-										    // create a databar object
-											$databar = new PHPExcel_Style_DataBar();
-											// add default properties and possibly properties defined through an extLst 
-											$databar->applyFromXML($ref, $cfRule, (isset($xmlSheet->extLst))?$xmlSheet->extLst:null);
-											// store the Databar object with the conditional
-											$objConditional->setConditionalObject($databar);
+											// create a databar/colorscale/iconset and store it with the conditional
+											$objConditional->setConditionalObject($ref, $cfRule, (isset($xmlSheet->extLst))?$xmlSheet->extLst:null);
 										}
-										else if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_COLORSCALE)
-										{
-											// ColorScale properties
-										    // create a colorscale object
-											$colorScale = new PHPExcel_Style_ColorScale();
-											// add default properties and possibly properties defined through an extLst 
-											$colorScale->applyFromXML($ref, $cfRule);
-											// store the ColorScale object with the conditional
-											$objConditional->setConditionalObject($colorScale);
-										}
-										
 										else
 										{
 											$objConditional->setOperatorType((string)$cfRule["operator"]);
@@ -1739,6 +1720,52 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 							}
 						}
 					}
+					
+					// process the extlst section
+					if (!$this->_readDataOnly && $xmlSheet && $xmlSheet->extLst)
+					{
+						//does this extLst have a ConditionalFormatings section ({78C0D931-6437-407d-A8EE-F0AAD7539E65}) ?
+						
+						$cfSection = $xmlSheet->extLst->xpath('*[@uri="{78C0D931-6437-407d-A8EE-F0AAD7539E65}"]');
+						if (count($cfSection)>0)
+						{
+							$cfSection = $cfSection[0];
+							
+							$extLstConditionalFormattingNamespace = 'x'.PHPExcel_Writer_Excel2007_Worksheet::EXTLST_CONDITIONALFORMATTINGID;
+							$cfs = $cfSection->children($extLstConditionalFormattingNamespace,true);
+							if ($cfs)
+							{
+								$cfs = $cfs[0];
+								// loop through the list of elements and check which must be processed
+								foreach($cfs as $conditionalFormatting)
+								{
+									if (isset($conditionalFormatting->cfRule))
+									{
+										$attributes = $conditionalFormatting->cfRule->attributes();
+										
+										if ((isset($attributes['type'])) && ((string)$attributes['type'] == 'iconSet'))
+										{
+											$cfRule = $conditionalFormatting->cfRule;
+											// get the cell group											
+											$cellgroup = (string)$conditionalFormatting->children('xm',TRUE)->sqref;
+											// get the priority
+											$priority = (isset($attributes['priority']))?$attributes['priority']:99;
+											// create a new conditional for this iconSet											
+											$objConditional = new PHPExcel_Style_Conditional();
+											$objConditional->setConditionType(PHPExcel_Style_Conditional::CONDITION_ICONSET);											
+											$objConditional->setPriority($priority);
+											$objConditional->setConditionalObject($cellgroup, $cfRule, null);
+											// link the conditional to the related cells
+											$aReferences = PHPExcel_Cell::extractAllCellReferencesInRange($cellgroup);
+											foreach ($aReferences as $reference) { $docSheet->getStyle($reference)->addConditionalStyle($objConditional);}
+										}
+									}
+								}
+							}
+						}
+					}
+					
+					
 
 					if ((!$this->_readDataOnly) || (!empty($this->_loadSheetsOnly))) {
 						// active sheet index
@@ -1758,7 +1785,6 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 			}
 
 		}
-
 
 		if (!$this->_readDataOnly) {
 			$contentTypes = simplexml_load_string($this->_getFromZipArchive($zip, "[Content_Types].xml"), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());

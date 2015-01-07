@@ -1285,10 +1285,11 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	/*
 	 * Get an array containing the databar data that must be written to the extLst entry of the worksheet
 	 *
+	 * @params priority not used
 	 * @return	array	array containing all the data that must be written to the extLst entry of the worksheert
 	 *
 	 */
-	public function getExtLstData()
+	public function getExtLstData($priority)
 	{
 		$forExtLst = true;
 		$data = $this->getElementsAsArray($forExtLst);
@@ -1319,5 +1320,16 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 		if (!is_null($this->_showValue)) { $result['attributes'][] = array('name' => 'showValue' , 'attributes' => $this->_showValue); }
 		return $result;
 	}
+	
+	/*
+	 * Indicates whether this object needs a reference to the entry in the extLst section
+	 *
+	 * @returns	bool	true is such a reference is needed
+	 *
+	 */
+	 public function needsExtLstReference()
+	 {
+		return true;
+	 }
 
 }
