@@ -44,6 +44,12 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	const CONDITION_COLORSCALE 				= 'colorScale';
 	const CONDITION_ICONSET					= 'iconSet';
 
+	const CONDITION_TIMEPERIOD 				= 'timePeriod';
+	const CONDITION_DUPLICATEVALUES	 		= 'duplicateValues';
+	const CONDITION_TOP10 					= 'top10';
+	const CONDITION_ABOVEAVERAGE 			= 'aboveAverage';
+	
+
 	/* Operator types */
 	const OPERATOR_NONE						= '';
 	const OPERATOR_BEGINSWITH				= 'beginsWith';
@@ -102,10 +108,58 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	private $_style;
 
 	/**
+	 *
+	 * aboveAverage (setting for CONDITION_ABOVEAVERAGE)
+	 *
+	 * @var string
+	 */
+	private $_aboveAverage;
+
+	/**
+	 *
+	 * percent  (setting for CONDITION_TOP10)
+	 *
+	 * @var string
+	 */
+	private $_percent;
+
+	/**
+	 *
+	 * rank  (setting for CONDITION_TOP10)
+	 *
+	 * @var string
+	 */
+	private $_rank;
+	
+	/**
+	 *
+	 * timePeriod  (setting for CONDITION_TIMEPERIOD)
+	 *
+	 * @var string
+	 */
+	private $_timePeriod;
+
+	/**
+	 *
+	 * bottom  (setting for CONDITION_TOP10)
+	 *
+	 * @var string
+	 */
+	private $_bottom;
+	
+	/**
 	 * ConditionObject
 	 *
+	 * @var linked ConditionObject
 	 */
 	private $_conditionObject;
+
+	/**
+	 * Cell reference (in case a conditionObject is defined, that cell reference will be used instead)
+	 *
+	 * @var
+	 */
+	private $_cellReference;	
 	
     /**
      * Create a new PHPExcel_Style_Conditional
@@ -140,6 +194,7 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	$this->_conditionType = $pValue;
     	return $this;
     }
+	
 	 /**
      * Get priority 
      *
@@ -160,6 +215,142 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	return $this;
     }
 	
+		 /**
+     * Get aboveAverage 
+     *
+     * @return string
+     */
+    public function getAboveAverage() {
+    	return $this->_aboveAverage;
+    }
+
+    /**
+     * Set aboveAverage
+     *
+     * @param string $pValue	aboveAverage setting
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setAboveAverage($pValue) {
+    	$this->_aboveAverage = $pValue;
+    	return $this;
+    }
+	
+	 /**
+     * Get rank 
+     *
+     * @return string
+     */
+    public function getRank() {
+    	return $this->_rank;
+    }
+
+    /**
+     * Set rank
+     *
+     * @param string $pValue	rank
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setRank($pValue) {
+    	$this->_rank = $pValue;
+    	return $this;
+    }
+
+	 /**
+     * Get timePeriod 
+     *
+     * @return string
+     */
+    public function getTimePeriod() {
+    	return $this->_timePeriod;
+    }
+
+    /**
+     * Set timePeriod
+     *
+     * @param string $pValue	timePeriod
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setTimePeriod($pValue) {
+    	$this->_timePeriod = $pValue;
+    	return $this;
+    }
+	
+	 /**
+     * Get bottom 
+     *
+     * @return string
+     */
+    public function getBottom() {
+    	return $this->_bottom;
+    }
+
+    /**
+     * Set bottom
+     *
+     * @param string $pValue	bottom
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setBottom($pValue) {
+    	$this->_bottom = $pValue;
+    	return $this;
+    }
+	
+    /**
+     * Get percent 
+     *
+     * @return string
+     */
+    public function getPercent() {
+    	return $this->_percent;
+    }
+
+    /**
+     * Set percent
+     *
+     * @param string $pValue	percent
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setPercent($pValue) {
+    	$this->_percent = $pValue;
+    	return $this;
+    }
+
+	 /**
+     * Get cellReference 
+     *
+     * @return string
+     */
+    public function getCellReference() {
+		if ($this->_conditionObject)
+		{
+			// get it from the conditional object
+			return $this->_conditionObject->getCellReference();
+		}
+		else
+		{
+			return $this->_cellReference;
+		}
+    }
+
+    /**
+     * Set cellReference
+     *
+     * @param string $pValue	cellReference
+     * @return PHPExcel_Style_Conditional
+     */
+    public function setCellReference($pValue) {
+		if ($this->_conditionObject)
+		{
+			// set it in the conditional object
+			$this->_conditionObject->setCellReference($pValue);
+		}
+		else
+		{
+			$this->_cellReference = $pValue;
+		}
+    	return $this;
+    }
+
 
     /**
      * Get Operator type
@@ -294,6 +485,11 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     		  $this->_conditionType
 			. $this->_priority
     		. $this->_operatorType
+			. $this->_aboveAverage
+			. $this->_percent
+			. $this->_rank
+			. $this->_timePeriod
+			. $this->_bottom
     		. implode(';', $this->_condition)
     		. $this->_style->getHashCode()
     		. __CLASS__

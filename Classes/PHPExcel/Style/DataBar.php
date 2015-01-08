@@ -69,12 +69,11 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	protected $_color;
 	
 	/**
-	* cellgroup definition : (eg:A1:C5)
+	* cellReference definition : (eg:A1:C5)
 	*
 	* @var string
-	*/
-	
-	protected $_cell_group;
+	*/	
+	protected $_cellReference;
 	
 	/**
 	* fill color
@@ -234,7 +233,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	 * $pValue = new PHPExcel_Style_DataBar();
 	 *	$pValue->applyFromArray(
 	 *		array(
-	 *			'cellgroup' => 'A1:A5',
+	 *			'cellReference' => 'A1:A5',
 	 *			'color' => '00FF00',
 	 *          'fillColor' => '00FF00',
 	 *          'border' => 1,
@@ -263,7 +262,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	public function applyFromArray($pStyles = null, $checkInput=true, $isExtLstData= false) {
 		if (is_array($pStyles)) 
 		{
-			if (array_key_exists('cellgroup', $pStyles))           { $this->setCellGroup($pStyles['cellgroup']); }
+			if (array_key_exists('cellReference', $pStyles))           { $this->setCellReference($pStyles['cellReference']); }
 			if (array_key_exists('color', $pStyles))               { $this->setColor((new PHPExcel_Style_Color())->applyFromArray($pStyles['color'])); }
 			if (array_key_exists('fillColor', $pStyles))           { $this->setFillColor(new PHPExcel_Style_Color($pStyles['fillColor']['rgb'])); }	
 			if (array_key_exists('borderColor', $pStyles))         { $this->setBorderColor(new PHPExcel_Style_Color($pStyles['borderColor']['rgb'])); }
@@ -337,7 +336,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 			)		
 		{
 			// add default properties (if they are defined)
-			$this->setCellGroup($ref);
+			$this->setCellReference($ref);
 			$this->setColor(new PHPExcel_Style_Color((string)$cfRule->dataBar->color[0]['rgb']));
 			$this->_cfvos = array(); // clear our the list before adding new ones
 			$this->addCfvo(PHPExcel_Style_CFVOType::fromXML($cfRule->dataBar->cfvo[0]));
@@ -610,14 +609,14 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	 *
 	 * <code>
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
-	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR) { $color = $worksheetstyles[0]->getCellGroup() ; }
+	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR) { $color = $worksheetstyles[0]->getCellReference() ; }
 	 * </code>
 	 *
 	 * @return string
 	*/
-    public function getCellGroup() 
+    public function getCellReference() 
 	{
-    	return $this->_cell_group;
+    	return $this->_cellReference;
     }
 	
 	/*
@@ -627,14 +626,14 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
 	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_DATABAR) 
 	 * { 
-	 *	 $worksheetstyles[0]->setCellGroup('A1:A5') ; 
+	 *	 $worksheetstyles[0]->setCellReference('A1:A5') ; 
 	 * }
 	 * </code>
 	 *
 	 * @return string
 	*/
-	public function setCellGroup($cell_group = null) {
-   		$this->_cell_group = $cell_group;
+	public function setCellReference($cellReference = null) {
+   		$this->_cellReference = $cellReference;
    		return $this;
     }
 
@@ -1295,7 +1294,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_Supervisor implements PHPExc
 		$data = $this->getElementsAsArray($forExtLst);
 			// add id andtype to 
 		$result = array('name' => 'cfRule',
-						'cellgroup' => $this->_cell_group,
+						'cellReference' => $this->_cellReference,
 						'attributes' => array(array('name' => 'type',   'attributes' => 'dataBar'),
 											   array('name' => 'id',     'attributes' => $this->getClassID()),
 											   array('name' => 'dataBar','attributes' => $data)));

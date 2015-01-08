@@ -61,6 +61,13 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	protected $_id;
 	
 	/**
+	* cell reference definition : (eg:A1:C5)
+	*
+	* @var string
+	*/	
+	protected $_cellReference;
+	
+	/**
 	 * Create a new PHPExcel_Style_Border
 	 *
 	 */
@@ -79,7 +86,7 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	 * $pValue = new PHPExcel_Style_ColorScale();
 	 *	$pValue->applyFromArray(
 	 *		array(
-	 *			'cellgroup' => 'A1:A5',
+	 *			'cellReference' => 'A1:A5',
 	 *			'colors' => array(array('rgb'=>'00FF0000','rgb'=>'FFFF0000','rgb'=>'00FFFF00')),
 	 *          'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
 	 *			), true);
@@ -93,9 +100,9 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	public function applyFromArray($pStyles = null, $checkInput=true, $isExtLstData= false) {
 		if (is_array($pStyles)) 
 		{
-			if (array_key_exists('cellgroup', $pStyles))    
+			if (array_key_exists('cellReference', $pStyles))    
 			{ 
-				$this->setCellGroup($pStyles['cellgroup']); 
+				$this->setCellReference($pStyles['cellReference']); 
 			}
 			if (array_key_exists('colors', $pStyles))
 			{ 
@@ -139,7 +146,7 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 		{
 			
 			// add default properties
-			$this->setCellGroup($ref);
+			$this->setCellReference($ref);
 			$this->_colors = array(); // clear out colors bfore adding new ones
 			foreach($cfRule->colorScale->color as $color)
 			{
@@ -266,14 +273,14 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	 *
 	 * <code>
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
-	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) { $color = $worksheetstyles[0]->getCellGroup() ; }
+	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) { $color = $worksheetstyles[0]->getCellReference() ; }
 	 * </code>
 	 *
 	 * @return string
 	*/
-    public function getCellGroup() 
+    public function getCellReference() 
 	{
-    	return $this->_cell_group;
+    	return $this->_cellReference;
     }
 	
 	/*
@@ -283,14 +290,14 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
 	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) 
 	 * { 
-	 *	 $worksheetstyles[0]->setCellGroup('A1:A5') ; 
+	 *	 $worksheetstyles[0]->setCellReference('A1:A5') ; 
 	 * }
 	 * </code>
 	 *
 	 * @return string
 	*/
-	public function setCellGroup($cell_group = null) {
-   		$this->_cell_group = $cell_group;
+	public function setCellReference($cellReference = null) {
+   		$this->_cellReference = $cellReference;
    		return $this;
     }
 

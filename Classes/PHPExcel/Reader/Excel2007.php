@@ -945,13 +945,20 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 							if (!$this->_readDataOnly && $xmlSheet && $xmlSheet->conditionalFormatting) {
 								foreach ($xmlSheet->conditionalFormatting as $conditional) {
 									foreach ($conditional->cfRule as $cfRule) {
+									
+									
 										if (
 												(
 													(
 														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_NONE ||
 														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CELLIS ||
 														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_CONTAINSTEXT ||
-														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_EXPRESSION
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_EXPRESSION ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_TIMEPERIOD ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DUPLICATEVALUES ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_TOP10 ||
+														(string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_ABOVEAVERAGE
+
 													) && isset($dxfs[intval($cfRule["dxfId"])])
 												) ||
 												((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
@@ -960,6 +967,10 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 											)
 										{
 											$conditionals[(string) $conditional["sqref"]][intval($cfRule["priority"])] = $cfRule;
+										}
+										else
+										{
+											//throw new PHPExcel_Reader_Exception('Unknown type conditional formatting: '.(string)$cfRule["type"]);
 										}
 									}
 								}
@@ -983,10 +994,13 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 										else
 										{
 											$objConditional->setOperatorType((string)$cfRule["operator"]);
+											$objConditional->setCellReference($ref);
+											
 
 											if ((string)$cfRule["text"] != '') {
 												$objConditional->setText((string)$cfRule["text"]);
 											}
+											
 											if (count($cfRule->formula) > 1) {
 												foreach ($cfRule->formula as $formula) {
 													$objConditional->addCondition((string)$formula);
@@ -994,6 +1008,43 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 											} else {
 												$objConditional->addCondition((string)$cfRule->formula);
 											}
+
+											if ((string)$cfRule["priority"] != '') {
+												$objConditional->setPriority((string)$cfRule["priority"]);
+											}
+
+											// specific setting for PHPExcel_Style_Conditional::CONDITION_ABOVEAVERAGE
+											if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_ABOVEAVERAGE)
+											{
+												if ((string)$cfRule["aboveAverage"] != '') {
+													$objConditional->setAboveAverage((string)$cfRule["aboveAverage"]);
+												}
+											}
+									
+											// specific setting for PHPExcel_Style_Conditional::CONDITION_TOP10
+											if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_TOP10)
+											{											
+												if ((string)$cfRule["percent"] != '') {
+													$objConditional->setPercent((string)$cfRule["percent"]);
+												}
+
+												if ((string)$cfRule["bottom"] != '') {
+													$objConditional->setBottom((string)$cfRule["bottom"]);
+												}
+
+												if ((string)$cfRule["rank"] != '') {
+													$objConditional->setRank((string)$cfRule["rank"]);
+												}
+											}
+											
+											// specific setting for PHPExcel_Style_Conditional::CONDITION_TIMEPERIOD
+											if ((string)$cfRule["type"] == PHPExcel_Style_Conditional::CONDITION_TIMEPERIOD)
+											{
+												if ((string)$cfRule["timePeriod"] != '') {
+													$objConditional->setTimePeriod((string)$cfRule["timePeriod"]);
+												}
+											}
+
 											$objConditional->setStyle(clone $dxfs[intval($cfRule["dxfId"])]);
 										}
 										$conditionalStyles[] = $objConditional;
@@ -1169,6 +1220,13 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 									self::boolean((string) $xmlSheet->pageSetup["useFirstPageNumber"])) {
 									$docPageSetup->setFirstPageNumber(intval($xmlSheet->pageSetup["firstPageNumber"]));
 								}
+								if (isset($xmlSheet->pageSetup["horizontalDpi"])) {
+									$docPageSetup->setHorizontalDpi(floatval($xmlSheet->pageSetup["horizontalDpi"]));
+								}
+								if (isset($xmlSheet->pageSetup["verticalDpi"])) {
+									$docPageSetup->setVerticalDpi(floatval($xmlSheet->pageSetup["verticalDpi"]));
+								}
+
 							}
 
 							if ($xmlSheet && $xmlSheet->headerFooter && !$this->_readDataOnly) {
@@ -1747,16 +1805,16 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 										{
 											$cfRule = $conditionalFormatting->cfRule;
 											// get the cell group											
-											$cellgroup = (string)$conditionalFormatting->children('xm',TRUE)->sqref;
+											$cellReference = (string)$conditionalFormatting->children('xm',TRUE)->sqref;
 											// get the priority
 											$priority = (isset($attributes['priority']))?$attributes['priority']:99;
 											// create a new conditional for this iconSet											
 											$objConditional = new PHPExcel_Style_Conditional();
 											$objConditional->setConditionType(PHPExcel_Style_Conditional::CONDITION_ICONSET);											
 											$objConditional->setPriority($priority);
-											$objConditional->setConditionalObject($cellgroup, $cfRule, null);
+											$objConditional->setConditionalObject($cellReference, $cfRule, null);
 											// link the conditional to the related cells
-											$aReferences = PHPExcel_Cell::extractAllCellReferencesInRange($cellgroup);
+											$aReferences = PHPExcel_Cell::extractAllCellReferencesInRange($cellReference);
 											foreach ($aReferences as $reference) { $docSheet->getStyle($reference)->addConditionalStyle($objConditional);}
 										}
 									}

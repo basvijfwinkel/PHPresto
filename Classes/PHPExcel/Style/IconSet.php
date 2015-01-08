@@ -102,6 +102,14 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 	protected $_id;
 	
 	/**
+	* cell reference definition : (eg:A1:C5)
+	*
+	* @var string
+	*/	
+	protected $_cellReference;
+	
+	
+	/**
 	 * cfIcon objects (if object is a custom object)
 	 *
 	 * @var	array	array of cfIcons 
@@ -127,7 +135,7 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 	 * $pValue = new PHPExcel_Style_IconSet();
 	 *	$pValue->applyFromArray(
 	 *		array(
-	 *			'cellgroup' => 'A1:A5',
+	 *			'cellReference' => 'A1:A5',
 	 *			'iconSet' => "3Arrows",
 	 *			'reverse' => 1,
 	 *			'showValue' => 0,
@@ -145,13 +153,13 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 	public function applyFromArray($pStyles = null, $checkInput=true, $isExtLstData= false) {
 		if (is_array($pStyles)) 
 		{
-			if (array_key_exists('cellgroup', $pStyles))    
+			if (array_key_exists('cellReference', $pStyles))    
 			{ 
-				$this->setCellGroup($pStyles['cellgroup']); 
+				$this->setCellReference($pStyles['cellReference']); 
 			}
 			if (array_key_exists('iconSet', $pStyles))
 			{ 
-				$this->setIconSetName($pStyles['cellgroup']); 
+				$this->setIconSetName($pStyles['iconSet']); 
 			}
 			if (array_key_exists('reverse', $pStyles))
 			{ 
@@ -207,7 +215,7 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 		if (isset($cfRule->iconSet->cfvo))
 		{			
 			// add default properties
-			$this->setCellGroup($ref);
+			$this->setCellReference($ref);
 			
 			$attr = $cfRule->iconSet->attributes();
 			// iconSet
@@ -476,14 +484,14 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 	 *
 	 * <code>
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
-	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_IconSet) { $color = $worksheetstyles[0]->getCellGroup() ; }
+	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_IconSet) { $color = $worksheetstyles[0]->getCellReference() ; }
 	 * </code>
 	 *
 	 * @return string
 	*/
-    public function getCellGroup() 
+    public function getCellReference() 
 	{
-    	return $this->_cell_group;
+    	return $this->_cellReference;
     }
 	
 	/*
@@ -493,14 +501,14 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
 	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_IconSet) 
 	 * { 
-	 *	 $worksheetstyles[0]->setCellGroup('A1:A5') ; 
+	 *	 $worksheetstyles[0]->setCellReference('A1:A5') ; 
 	 * }
 	 * </code>
 	 *
 	 * @return string
 	*/
-	public function setCellGroup($cell_group = null) {
-   		$this->_cell_group = $cell_group;
+	public function setCellReference($cellReference = null) {
+   		$this->_cellReference = $cellReference;
    		return $this;
     }
 
@@ -761,7 +769,7 @@ class PHPExcel_Style_IconSet extends PHPExcel_Style_Supervisor implements PHPExc
 		$forExtLst = true;
 		$data = $this->getElementsAsArray($forExtLst);
 		$result = array('name' => 'cfRule',
-						'cellgroup' => $this->_cell_group,
+						'cellReference' => $this->_cellReference,
 						'attributes' => array(array('name' => 'type',   'attributes' => 'iconSet'),
 												array('name' => 'priority',  'attributes' => $priority),
 												array('name' => 'id',        'attributes' => $this->getClassID()),

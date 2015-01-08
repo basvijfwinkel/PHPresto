@@ -274,6 +274,21 @@ class PHPExcel_Worksheet_PageSetup
 	 */
 	private $_firstPageNumber = NULL;
 
+	/**
+	 * Horizontal Dpi
+	 *
+	 * @var float
+	 */
+	private $_horizontalDpi = NULL;
+
+	/**
+	 * Vertical Dpi
+	 *
+	 * @var float
+	 */
+	private $_verticalDpi = NULL;
+
+	
     /**
      * Create a new PHPExcel_Worksheet_PageSetup
      */
@@ -355,6 +370,44 @@ class PHPExcel_Worksheet_PageSetup
 		return $this;
 	}
 
+	/**
+	 * Get horizontal Dpi
+	 *
+	 * @return float
+	 */
+	public function getHorizontalDpi() {
+		return $this->_horizontalDpi;
+	}
+
+	/**
+	 * Set Horizontal Dpi
+	 *
+	 * @param 	float	$pValue
+	 * @return PHPExcel_Worksheet_PageSetup
+	 */
+	public function setHorizontalDpi($pValue) {
+		$this->_horizontalDpi = $pValue;
+	}
+
+	/**
+	 * Get vertical Dpi
+	 *
+	 * @return float
+	 */
+	public function getVerticalDpi() {
+		return $this->_verticalDpi;
+	}
+
+	/**
+	 * Set Vertical Dpi
+	 *
+	 * @param 	float	$pValue
+	 * @return PHPExcel_Worksheet_PageSetup
+	 */
+	public function setVerticalDpi($pValue) {
+		$this->_verticalDpi = $pValue;
+	}
+	
 	/**
 	 * Get Fit To Page
 	 *
