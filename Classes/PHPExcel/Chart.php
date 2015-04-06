@@ -173,11 +173,30 @@ class PHPExcel_Chart
 	 */
 	private $_bottomRightYOffset = 10;
 
+	/**
+	 * Secondary Y-axis
+	 * Note : no checks are performed if this model contains 2 dataseries or is the right type
+	 * Set to NULL if not used (default)
+	 * @var integer
+	 */
+	private $_useSecondaryYAxis = false;
 
 	/**
 	 * Create a new PHPExcel_Chart
 	 */
-	public function __construct($name, PHPExcel_Chart_Title $title = null, PHPExcel_Chart_Legend $legend = null, PHPExcel_Chart_PlotArea $plotArea = null, $plotVisibleOnly = true, $displayBlanksAs = '0', PHPExcel_Chart_Title $xAxisLabel = null, PHPExcel_Chart_Title $yAxisLabel = null, PHPExcel_Chart_Axis $xAxis = null, PHPExcel_Chart_Axis $yAxis = null, PHPExcel_Chart_GridLines $majorGridlines = null, PHPExcel_Chart_GridLines $minorGridlines = null)
+	public function __construct($name, 
+								PHPExcel_Chart_Title $title = null, 
+								PHPExcel_Chart_Legend $legend = null, 
+								PHPExcel_Chart_PlotArea $plotArea = null, 
+								$plotVisibleOnly = true, 
+								$displayBlanksAs = '0', 
+								PHPExcel_Chart_Title $xAxisLabel = null, 
+								PHPExcel_Chart_Title $yAxisLabel = null, 
+								PHPExcel_Chart_Axis $xAxis = null, 
+								PHPExcel_Chart_Axis $yAxis = null, 
+								PHPExcel_Chart_GridLines $majorGridlines = null, 
+								PHPExcel_Chart_GridLines $minorGridlines = null,
+								PHPExcel_Chart_Axis $secondaryYAxis = NULL)
 	{
 		$this->_name = $name;
 		$this->_title = $title;
@@ -189,10 +208,34 @@ class PHPExcel_Chart
 		$this->_displayBlanksAs = $displayBlanksAs;
 		$this->_xAxis = $xAxis;
 		$this->_yAxis = $yAxis;
-    $this->_majorGridlines = $majorGridlines;
-    $this->_minorGridlines = $minorGridlines;
+		$this->_majorGridlines = $majorGridlines;
+		$this->_minorGridlines = $minorGridlines;
+		$this->_secondaryYAxis = $secondaryYAxis;
 	}
 
+	/**
+	* Set the secondary Y-Axis
+	* @param	Boolean $use 
+	* @return	PHPExcel_Chart
+	*
+	*/
+	public function setSecondaryYAxis($secondaryYAxis)
+	{
+		$this->_secondaryYAxis = $secondaryYAxis;		
+		return $this;
+	}
+	
+	/**
+	* Get the secondary Y-Axis
+	* @return	Boolean $use 
+	*
+	*/
+	public function getSecondaryYAxis()
+	{
+		return $this->_secondaryYAxis;
+	}
+	
+	
 	/**
 	 * Get Name
 	 *

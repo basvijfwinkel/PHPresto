@@ -149,7 +149,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 			// Return
 			$result = $objWriter->getData();
 			/* debug */
-			echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
+			//echo('<xmp style="white-space: pre-wrap">'.$result.'</xmp>');
 			/* debug */
 			return $result;
 		} else {

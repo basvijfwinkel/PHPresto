@@ -43,7 +43,6 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 	const CONDITION_DATABAR 				= 'dataBar';
 	const CONDITION_COLORSCALE 				= 'colorScale';
 	const CONDITION_ICONSET					= 'iconSet';
-
 	const CONDITION_TIMEPERIOD 				= 'timePeriod';
 	const CONDITION_DUPLICATEVALUES	 		= 'duplicateValues';
 	const CONDITION_TOP10 					= 'top10';
