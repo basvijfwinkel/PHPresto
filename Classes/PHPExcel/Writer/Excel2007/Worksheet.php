@@ -489,11 +489,12 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 	{
 		// Conditional id
 		$id = 1;
-
+		
 		// Loop through styles in the current worksheet
 		$processedCellReferences = array(); // conditional formats like databar/colorscale/iconset settings need to be applied as a group; not to each individual cell
 		foreach ($pSheet->getConditionalStylesCollection() as $cellCoordinate => $conditionalStyles) {
 			foreach ($conditionalStyles as $index => $conditional) {
+				
 				// WHY was this again?
 				// if ($this->getParentWriter()->getStylesConditionalHashTable()->getIndexForHashCode( $conditional->getHashCode() ) == '') {
 				//	continue;
@@ -612,6 +613,8 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
 								// definition needs to be assigned to this cell
 								// conditionalFormatting element
 								$objWriter->startElement('conditionalFormatting');
+								
+								$realCellReference = $cellReference;
 								$objWriter->writeAttribute('sqref',	$cellReference);
 									// cfRule  element
 									$objWriter->startElement('cfRule');

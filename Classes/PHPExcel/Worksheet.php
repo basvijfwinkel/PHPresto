@@ -1455,10 +1455,36 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
      * @return PHPExcel_Worksheet
      */
     public function removeConditionalStyles($pCoordinate = 'A1')
-    {
-        unset($this->_conditionalStylesCollection[$pCoordinate]);
+    {		
+		if (isset($this->_conditionalStylesCollection[$pCoordinate]))
+		{
+			$conditions = $this->_conditionalStylesCollection[$pCoordinate];
+			foreach($conditions as $condition)
+			{
+				$condition->removeCellReference($pCoordinate);
+			}
+			unset($this->_conditionalStylesCollection[$pCoordinate]);
+		}
         return $this;
     }
+	
+	public function updateConditionalStyles($oldCoordinates,$newCoordinates)
+	{
+		if (isset($this->_conditionalStylesCollection[$oldCoordinates]))
+		{
+			$conditions = $this->_conditionalStylesCollection[$oldCoordinates];
+			foreach($conditions as $condition)
+			{
+				// update the coordinates in each conditional
+				$condition->updateCellReference($oldCoordinates, $newCoordinates);
+			}
+			// also update the index of the conditions collection so the relationship is not lost
+			unset($this->_conditionalStylesCollection[$oldCoordinates]);
+			$this->_conditionalStylesCollection[$newCoordinates] = $conditions;
+		}
+        return $this;
+    }
+			
 
     /**
      * Get collection of conditional styles

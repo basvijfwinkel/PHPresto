@@ -331,6 +331,20 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 		}
     }
 
+	public function removeCellReference($position)
+	{
+		if ($this->_conditionObject)
+		{
+			// remove the position from the conditionObject's list of cellReferences
+			$this->_conditionObject->removeCellReference($position);
+		}
+		else
+		{
+			$this->_cellReference = null;
+		}
+		return $this;
+	}
+		
     /**
      * Set cellReference
      *
@@ -554,6 +568,20 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
 		}
 		// initialize the object
 		$this->_conditionObject->applyFromXML($ref, $rule, $extLst);
+	}
+	
+	public function updateCellReference($oldCoordinates, $newCoordinates)
+	{
+		if ($this->_conditionObject)
+		{
+			// set it in the conditional object
+			$this->_conditionObject->updateCellReference($oldCoordinates, $newCoordinates);
+		}
+		else
+		{
+			$this->_cellReference = $newCoordinates;
+		}
+    	return $this;
 	}
 
 }

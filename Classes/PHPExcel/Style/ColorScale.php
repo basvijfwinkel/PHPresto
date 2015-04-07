@@ -34,7 +34,7 @@
  * @copyright  Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  * @author	Bas Vijfwinkel
  */
-class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHPExcel_IComparable
+class PHPExcel_Style_ColorScale extends PHPExcel_Style_GroupedConditional implements PHPExcel_IComparable
 {
 
 	/**
@@ -61,22 +61,12 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	protected $_id;
 	
 	/**
-	* cell reference definition : (eg:A1:C5)
-	*
-	* @var string
-	*/	
-	protected $_cellReference;
-	
-	/**
-	 * Create a new PHPExcel_Style_Border
+	 * Create a new PHPExcel_Style_ColorScale
 	 *
 	 */
 	public function __construct() 
 	{
-		// set these cfvo values by default because without them no colorscale is shown
-		$this->_cfvos = array(PHPExcel_Style_CFVOType::fromString('min'),PHPExcel_Style_CFVOType::fromString('max'));
-		// uniq id
-		$this->_id = uniqid('',true);
+		parent::_construct();
 	}	
 	
 	/**
@@ -269,39 +259,6 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 	}
 
 	/*
-	 * get the group of cells that this colorscale setting applies to
-	 *
-	 * <code>
-	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
-	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) { $color = $worksheetstyles[0]->getCellReference() ; }
-	 * </code>
-	 *
-	 * @return string
-	*/
-    public function getCellReference() 
-	{
-    	return $this->_cellReference;
-    }
-	
-	/*
-	 * set the group of cells that this colorscale setting applies to
-	 *
-	 * <code>
-	 * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
-	 * if ($worksheetstyles[0]->getConditionType() == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) 
-	 * { 
-	 *	 $worksheetstyles[0]->setCellReference('A1:A5') ; 
-	 * }
-	 * </code>
-	 *
-	 * @return string
-	*/
-	public function setCellReference($cellReference = null) {
-   		$this->_cellReference = $cellReference;
-   		return $this;
-    }
-
-	/*
 	 * Get the cfvo settings
 	 * 
 	 * @params	boolean	set to true if the extlst cfvo settings must be used
@@ -451,6 +408,5 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_Supervisor implements PHP
 						 (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
 						  substr($hash, 20, 12));
 	}
-
 
 }

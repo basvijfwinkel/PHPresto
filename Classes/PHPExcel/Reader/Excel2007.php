@@ -1053,9 +1053,11 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
 									// Extract all cell references in $ref
 									$aReferences = PHPExcel_Cell::extractAllCellReferencesInRange($ref);
-									foreach ($aReferences as $reference) {
+									foreach ($aReferences as $reference) 
+									{
 										$docSheet->getStyle($reference)->setConditionalStyles($conditionalStyles);
 									}
+									
 								}
 							}
 
@@ -1860,14 +1862,9 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 							$chartElements = simplexml_load_string($this->_getFromZipArchive($zip, $chartEntryRef), 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());
 							$objChart = PHPExcel_Reader_Excel2007_Chart::readChart($chartElements,basename($chartEntryRef,'.xml'));
 
-//							echo 'Chart ',$chartEntryRef,'<br />';
-//							var_dump($charts[$chartEntryRef]);
-//
 							if (isset($charts[$chartEntryRef])) {
 								$chartPositionRef = $charts[$chartEntryRef]['sheet'].'!'.$charts[$chartEntryRef]['id'];
-//								echo 'Position Ref ',$chartPositionRef,'<br />';
 								if (isset($chartDetails[$chartPositionRef])) {
-//									var_dump($chartDetails[$chartPositionRef]);
 
 									$excel->getSheetByName($charts[$chartEntryRef]['sheet'])->addChart($objChart);
 									$objChart->setWorksheet($excel->getSheetByName($charts[$chartEntryRef]['sheet']));
@@ -1887,7 +1884,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		}
 
 		$zip->close();
-
+		
 		return $excel;
 	}
 

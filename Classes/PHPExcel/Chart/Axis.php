@@ -41,6 +41,7 @@ class PHPExcel_Chart_Axis extends
       'horizontal_crosses' => self::HORIZONTAL_CROSSES_AUTOZERO,
       'horizontal_crosses_value' => NULL,
 	  'vertical_axis_position' => 'l',
+	  'hide_major_gridlines' => false,
   );
 
   /**
@@ -191,7 +192,7 @@ class PHPExcel_Chart_Axis extends
 
   public function setAxisOptionsProperties($axis_labels, $horizontal_crosses_value = NULL, $horizontal_crosses = NULL,
       $axis_orientation = NULL, $major_tmt = NULL, $minor_tmt = NULL, $minimum = NULL, $maximum = NULL, $major_unit = NULL,
-      $minor_unit = NULL,$vertical_axis_position=NULL) {
+      $minor_unit = NULL,$vertical_axis_position=NULL, $hide_major_gridlines=NULL) {
 
     $this->_axis_options['axis_labels'] = (string) $axis_labels;
     ($horizontal_crosses_value !== NULL)
@@ -206,6 +207,7 @@ class PHPExcel_Chart_Axis extends
     ($major_unit !== NULL) ? $this->_axis_options['major_unit'] = (string) $major_unit : NULL;
     ($minor_unit !== NULL) ? $this->_axis_options['minor_unit'] = (string) $minor_unit : NULL;
 	($vertical_axis_position !== NULL) ? $this->_axis_options['vertical_axis_position'] = (string) $vertical_axis_position : NULL;
+	($hide_major_gridlines !== NULL) ? $this->_axis_options['hide_major_gridlines'] = $hide_major_gridlines : FALSE;
   }
   
   public function setAxisOptionsProperty($name, $value)
