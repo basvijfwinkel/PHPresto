@@ -527,6 +527,15 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
 								if ((int)$xf["numFmtId"] < 164) {
 									$numFmt = PHPExcel_Style_NumberFormat::builtInFormatCode((int)$xf["numFmtId"]);
+									if ($numFmt == '') {
+										// look up the format code in $numFmts
+										foreach($numFmts as $numFmtEntry) {
+											if (((int)$numFmtEntry["numFmtId"]) == ((int)$xf["numFmtId"])) {
+												$numFmt = (string)$numFmtEntry["formatCode"];
+												break;
+											}
+										}
+									}
 								}
 							}
                             $quotePrefix = false;
@@ -561,6 +570,14 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 									$numFmt = (string) $tmpNumFmt["formatCode"];
 								} else if ((int)$xf["numFmtId"] < 165) {
 									$numFmt = PHPExcel_Style_NumberFormat::builtInFormatCode((int)$xf["numFmtId"]);
+									if ($numFmt == '') {
+										foreach($numFmts as $numFmtEntry) {
+											if (((int)$numFmtEntry["numFmtId"]) == ((int)$xf["numFmtId"])) {
+												$numFmt = (string)$numFmtEntry["formatCode"];
+												break;
+											}
+										}
+									}
 								}
 							}
 
@@ -1631,7 +1648,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 												}
 												else
 												{
-													var_dump('something else');
+													//var_dump('something else');
 												}
 											}
 										}
