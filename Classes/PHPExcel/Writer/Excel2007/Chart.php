@@ -97,7 +97,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
         $pChart->getChartAxisY(),
         $pChart->getMajorGridlines(),
         $pChart->getMinorGridlines(),
-		$pChart->getSecondaryYAxis()
+		$pChart->getSecondaryYAxis(),
+		$pChart->getSecondaryXAxis()
     );
 
     $this->_writeLegend($pChart->getLegend(), $objWriter);
@@ -259,7 +260,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
       PHPExcel_Chart_Axis $yAxis,
       PHPExcel_Chart_GridLines $majorGridlines,
       PHPExcel_Chart_GridLines $minorGridlines,
-	  PHPExcel_Chart_Axis $secondaryYAxis = NULL
+	  PHPExcel_Chart_Axis $secondaryYAxis = NULL,
+	  PHPExcel_Chart_Axis $secondaryXAxis = NULL
   ) 
   {
     if (is_null($plotArea)) {   return;  }
@@ -424,9 +426,9 @@ class PHPExcel_Writer_Excel2007_Chart extends
 			} 
 			else 
 			{
-				$this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $xAxis, $secondaryYAxis,true);
+				$this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis,true);
 			}
-			$this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id3, $id4, $valIsMultiLevelSeries, $xAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
+			$this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id3, $id4, $valIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
 		}
 
 	}
@@ -528,8 +530,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:axPos');
-    $objWriter->writeAttribute('val', "b");
-    $objWriter->endElement();
+	$objWriter->writeAttribute('val', "b");
+	$objWriter->endElement();
 
     if (!is_null($xAxisLabel)) {
       $objWriter->startElement('c:title');
@@ -643,7 +645,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
    * @throws  PHPExcel_Writer_Exception
    */
   private function _writeValAx($objWriter, PHPExcel_Chart_PlotArea $plotArea, $yAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines, $isSecondaryAxis=false) {
-    $objWriter->startElement('c:valAx');
+    
+	$objWriter->startElement('c:valAx');
 
     if ($id2 > 0) {
       $objWriter->startElement('c:axId');
@@ -683,7 +686,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:axPos');
-    $objWriter->writeAttribute('val', $yAxis->getAxisOptionsProperty('vertical_axis_position'));
+    $objWriter->writeAttribute('val', $yAxis->getAxisOptionsProperty('axis_position'));
     $objWriter->endElement();
 
 	if (!($isSecondaryAxis && $yAxis->getAxisOptionsProperty('hide_major_gridlines')))
@@ -958,6 +961,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:tickLblPos');
+	
     $objWriter->writeAttribute('val', $xAxis->getAxisOptionsProperty('axis_labels'));
     $objWriter->endElement();
 

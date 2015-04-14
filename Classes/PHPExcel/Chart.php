@@ -196,7 +196,8 @@ class PHPExcel_Chart
 								PHPExcel_Chart_Axis $yAxis = null, 
 								PHPExcel_Chart_GridLines $majorGridlines = null, 
 								PHPExcel_Chart_GridLines $minorGridlines = null,
-								PHPExcel_Chart_Axis $secondaryYAxis = NULL)
+								PHPExcel_Chart_Axis $secondaryYAxis = NULL,
+								PHPExcel_Chart_Axis $secondaryXAxis = NULL)
 	{
 		$this->_name = $name;
 		$this->_title = $title;
@@ -211,6 +212,7 @@ class PHPExcel_Chart
 		$this->_majorGridlines = $majorGridlines;
 		$this->_minorGridlines = $minorGridlines;
 		$this->_secondaryYAxis = $secondaryYAxis;
+		$this->_secondaryXAxis = $secondaryXAxis;
 	}
 
 	/**
@@ -226,8 +228,20 @@ class PHPExcel_Chart
 	}
 	
 	/**
+	* Set the secondary X-Axis
+	* @param	Boolean $use 
+	* @return	PHPExcel_Chart
+	*
+	*/
+	public function setSecondaryXAxis($secondaryXAxis)
+	{
+		$this->_secondaryXAxis = $secondaryXAxis;		
+		return $this;
+	}
+	
+	/**
 	* Get the secondary Y-Axis
-	* @return	Boolean $use 
+	* @return PHPExcel_Chart_Axis
 	*
 	*/
 	public function getSecondaryYAxis()
@@ -235,6 +249,15 @@ class PHPExcel_Chart
 		return $this->_secondaryYAxis;
 	}
 	
+	/**
+	* Get the secondary X-Axis
+	* @return PHPExcel_Chart_Axis
+	*
+	*/
+	public function getSecondaryXAxis()
+	{
+		return $this->_secondaryXAxis;
+	}
 	
 	/**
 	 * Get Name
