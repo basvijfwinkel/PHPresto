@@ -481,7 +481,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
 	if (!empty($chartLayout))
 	{
 		$objWriter->startElement('c:showLeaderLines');
-		$objWriter->writeAttribute('val', ((empty($chartLayout->getShowLeaderLines())) ? 0 : 1));
+		$sll = $chartLayout->getShowLeaderLines();
+		$objWriter->writeAttribute('val', ((empty($sll)) ? 0 : 1));
 		$objWriter->endElement();
 	}
 

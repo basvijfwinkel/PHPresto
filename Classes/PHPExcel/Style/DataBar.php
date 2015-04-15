@@ -254,7 +254,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_GroupedConditional implement
 		if (is_array($pStyles)) 
 		{
 			if (array_key_exists('cellReference', $pStyles))       { $this->setCellReference($pStyles['cellReference']); }
-			if (array_key_exists('color', $pStyles))               { $this->setColor((new PHPExcel_Style_Color())->applyFromArray($pStyles['color'])); }
+			if (array_key_exists('color', $pStyles))               { $color = new PHPExcel_Style_Color(); $this->setColor($color->applyFromArray($pStyles['color'])); }
 			if (array_key_exists('fillColor', $pStyles))           { $this->setFillColor(new PHPExcel_Style_Color($pStyles['fillColor']['rgb'])); }	
 			if (array_key_exists('borderColor', $pStyles))         { $this->setBorderColor(new PHPExcel_Style_Color($pStyles['borderColor']['rgb'])); }
 			if (array_key_exists('negativeFillColor', $pStyles))   { $this->setNegativeFillColor(new PHPExcel_Style_Color($pStyles['negativeFillColor']['rgb'])); }
