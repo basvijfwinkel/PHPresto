@@ -125,4 +125,14 @@ class PHPExcel_Chart_PlotArea
 		}
 	}
 
+	public function updateWorkbookName($workbookname)
+	{
+		if ($this->_plotSeries)
+		{
+			foreach($this->_plotSeries as $dataSerie)
+			{
+				$dataSerie->updateWorkbookName($workbookname);
+			}
+		}
+	}
 }

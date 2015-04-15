@@ -89,7 +89,12 @@ class PHPExcel_Chart_DataSeriesValues
 	/**
 	 * Create a new PHPExcel_Chart_DataSeriesValues object
 	 */
-	public function __construct($dataType = self::DATASERIES_TYPE_NUMBER, $dataSource = null, $formatCode = null, $pointCount = 0, $dataValues = array(), $marker = null)
+	public function __construct($dataType = self::DATASERIES_TYPE_NUMBER, 
+								$dataSource = null, 
+								$formatCode = null, 
+								$pointCount = 0, 
+								$dataValues = array(), 
+								$marker = null)
 	{
 		$this->setDataType($dataType);
 		$this->_dataSource = $dataSource;
@@ -324,4 +329,10 @@ class PHPExcel_Chart_DataSeriesValues
 
 	}
 
+	public function updateWorkbookName($workbookname)
+	{
+		$parts = explode('!',$this->_dataSource);
+		$parts[0] = $workbookname;
+		$this->_dataSource = implode('!',$parts);
+	}
 }

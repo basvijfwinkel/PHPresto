@@ -697,5 +697,13 @@ class PHPExcel_Chart
 		}
 		return $renderer->render($outputDestination);
 	}
+	
+	public function updateWorkbookName($workbookname)
+	{
+		if ($this->_plotArea)
+		{
+			$this->_plotArea->updateWorkbookName($workbookname);
+		}
+	}
 
 }

@@ -137,7 +137,14 @@ class PHPExcel_Chart_DataSeries
 	/**
 	 * Create a new PHPExcel_Chart_DataSeries
 	 */
-	public function __construct($plotType = null, $plotGrouping = null, $plotOrder = array(), $plotLabel = array(), $plotCategory = array(), $plotValues = array(), $smoothLine = null, $plotStyle = null)
+	public function __construct($plotType = null, 
+								$plotGrouping = null, 
+								$plotOrder = array(), 
+								$plotLabel = array(), 
+								$plotCategory = array(), 
+								$plotValues = array(), 
+								$smoothLine = null, 
+								$plotStyle = null)
 	{
 		$this->_plotType = $plotType;
 		$this->_plotGrouping = $plotGrouping;
@@ -360,6 +367,21 @@ class PHPExcel_Chart_DataSeries
 			if ($plotValues !== NULL)
 				$plotValues->refresh($worksheet, FALSE);
 		}
+	}
+	
+	public function updateWorkbookName($workbookname)
+	{
+		// update plotlabels
+		foreach($this->_plotLabel as $plotlabel)
+		{
+			$plotlabel->updateWorkbookName($workbookname);
+		}
+		// update plotvalues
+		foreach($this->_plotValues as $plotvalues)
+		{
+			$plotvalues->updateWorkbookName($workbookname);
+		}
+		
 	}
 
 }

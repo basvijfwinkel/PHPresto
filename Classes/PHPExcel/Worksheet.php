@@ -883,6 +883,12 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
 				PHPExcel_ReferenceHelper::getInstance()->updateNamedFormulas($this->_parent, $oldTitle, $newTitle);
         }
 
+		// also update all graphs related to this workbook
+		foreach ($this->_chartCollection as $chart)
+		{
+			$chart->updateWorkbookName($pValue);
+		}
+				
         return $this;
     }
 
@@ -2937,8 +2943,10 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
 				//return $this->setTitle($altTitle,$updateFormulaCellReferences);
 			}
 		}
-
+		// set name
 		$this->_codeName=$pValue;
+		
+		// done
 		return $this;
 	}
 	/**
