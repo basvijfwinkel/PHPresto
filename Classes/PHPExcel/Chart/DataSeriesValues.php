@@ -331,8 +331,11 @@ class PHPExcel_Chart_DataSeriesValues
 
 	public function updateWorkbookName($workbookname)
 	{
-		$parts = explode('!',$this->_dataSource);
-		$parts[0] = $workbookname;
-		$this->_dataSource = implode('!',$parts);
+		if ($this->_dataSource)
+		{
+			$parts = explode('!',$this->_dataSource);
+			$parts[0] = $workbookname;
+			$this->_dataSource = implode('!',$parts);
+		}
 	}
 }

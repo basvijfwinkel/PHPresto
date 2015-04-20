@@ -381,6 +381,12 @@ class PHPExcel_Chart_DataSeries
 		{
 			$plotvalues->updateWorkbookName($workbookname);
 		}
+		//update plotcategory
+		foreach($this->_plotCategory as $plotcategory)
+		{
+			$plotcategory->updateWorkbookName($workbookname);
+		}
+
 		
 	}
 
