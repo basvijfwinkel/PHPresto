@@ -331,13 +331,17 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 			while ($iterator->valid()) {
 				if ($iterator->current() instanceof PHPExcel_Worksheet_Drawing
 					|| $iterator->current() instanceof PHPExcel_Worksheet_MemoryDrawing) {
-					// Write relationship for image drawing
-					$this->_writeRelationship(
-						$objWriter,
-						$i,
-						'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-						'../media/' . str_replace(' ', '', $iterator->current()->getIndexedFilename())
-					);
+
+					// do not add images that are references					if (is_null($iterator->current()->getReferenceHashTag()))
+					{
+						// Write relationship for image drawing
+						$this->_writeRelationship(
+							$objWriter,
+							$iterator->current()->getMediaReferenceId(),//$i,
+							'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+							'../media/' . str_replace(' ', '', $iterator->current()->getIndexedFilename())
+							);
+					}
 				}
 
 				$iterator->next();
@@ -390,14 +394,18 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 		$objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
 			// Loop through images and write relationships
-			foreach ($pWorksheet->getHeaderFooter()->getImages() as $key => $value) {
-				// Write relationship for image drawing
-				$this->_writeRelationship(
-					$objWriter,
-					$key,
-					'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-					'../media/' . $value->getIndexedFilename()
-				);
+			foreach ($pWorksheet->getHeaderFooter()->getImages() as $key => $value) 
+			{
+				// Write relationship for image drawing if it is not a reference
+				if (is_null($value->getReferenceHashTag()))
+				{
+					$this->_writeRelationship(
+						$objWriter,
+						$key,
+						'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
+						'../media/' . $value->getIndexedFilename()
+					);
+				}
 			}
 
 		$objWriter->endElement();

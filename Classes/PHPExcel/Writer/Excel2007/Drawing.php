@@ -223,7 +223,7 @@ class PHPExcel_Writer_Excel2007_Drawing extends PHPExcel_Writer_Excel2007_Writer
 						// a:blip
 						$objWriter->startElement('a:blip');
 						$objWriter->writeAttribute('xmlns:r', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships');
-						$objWriter->writeAttribute('r:embed', 'rId' . $pRelationId);
+						$objWriter->writeAttribute('r:embed', 'rId' .  $pDrawing->getMediaReferenceId());
 						$objWriter->endElement();
 
 						// a:stretch

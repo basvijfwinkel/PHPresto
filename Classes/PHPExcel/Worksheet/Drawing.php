@@ -42,6 +42,15 @@ class PHPExcel_Worksheet_Drawing extends PHPExcel_Worksheet_BaseDrawing implemen
 	 */
 	private $_path;
 
+	/**
+	 * rId of the drawing
+	 *
+	 * @var string
+	 */
+	protected $_rId;
+	
+	protected $_referenceHashTag;
+	
     /**
      * Create a new PHPExcel_Worksheet_Drawing
      */
@@ -49,6 +58,7 @@ class PHPExcel_Worksheet_Drawing extends PHPExcel_Worksheet_BaseDrawing implemen
     {
     	// Initialise values
     	$this->_path				= '';
+		$this->_referenceHashTag	= null;
 
     	// Initialize parent
     	parent::__construct();
@@ -68,10 +78,21 @@ class PHPExcel_Worksheet_Drawing extends PHPExcel_Worksheet_BaseDrawing implemen
      *
      * @return string
      */
-    public function getIndexedFilename() {
+    public function getIndexedFilename($index = null) {
     	$fileName = $this->getFilename();
     	$fileName = str_replace(' ', '_', $fileName);
-    	return str_replace('.' . $this->getExtension(), '', $fileName) . $this->getImageIndex() . '.' . $this->getExtension();
+		if (is_null($index)) 
+		{
+			if (!is_null($this->_rId))
+			{
+				$index = $this->_rId;
+			}
+			else
+			{
+				die('Media should already have been saved');
+			}
+		}
+    	return str_replace('.' . $this->getExtension(), '', $fileName) . $index . '.' . $this->getExtension();
     }
 
     /**
@@ -145,4 +166,20 @@ class PHPExcel_Worksheet_Drawing extends PHPExcel_Worksheet_BaseDrawing implemen
 			}
 		}
 	}
+	
+	public function setMediaReferenceId($rId)
+	{
+		$this->_rId = $rId;
+	}
+	
+	public function getMediaReferenceId()
+	{
+		return $this->_rId;
+	}
+	
+	public function getReferenceHashTag()
+	{
+		return $this->_referenceHashTag ;
+	}
+	
 }

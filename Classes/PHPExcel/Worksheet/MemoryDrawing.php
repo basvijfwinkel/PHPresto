@@ -74,7 +74,21 @@ class PHPExcel_Worksheet_MemoryDrawing extends PHPExcel_Worksheet_BaseDrawing im
 	 * @var string
 	 */
 	private $_uniqueName;
+	
+	/**
+	 * Hashtag for the image we referencing
+	 *
+	 * @var string
+	 */
+	protected $_referenceHashTag;
 
+	/**
+	 * rId of the image
+	 *
+	 * @var string
+	 */
+	protected $_rId;
+	
     /**
      * Create a new PHPExcel_Worksheet_MemoryDrawing
      */
@@ -85,6 +99,8 @@ class PHPExcel_Worksheet_MemoryDrawing extends PHPExcel_Worksheet_BaseDrawing im
     	$this->_renderingFunction 	= self::RENDERING_DEFAULT;
     	$this->_mimeType			= self::MIMETYPE_DEFAULT;
     	$this->_uniqueName			= md5(rand(0, 9999). time() . rand(0, 9999));
+		$this->_referenceHashTag	= null;
+		$this->_rId					= null;
 
     	// Initialize parent
     	parent::__construct();
@@ -161,12 +177,23 @@ class PHPExcel_Worksheet_MemoryDrawing extends PHPExcel_Worksheet_BaseDrawing im
      *
      * @return string
      */
-    public function getIndexedFilename() {
+    public function getIndexedFilename($index=null) 
+	{
 		$extension 	= strtolower($this->getMimeType());
 		$extension 	= explode('/', $extension);
 		$extension 	= $extension[1];
-
-    	return $this->_uniqueName . $this->getImageIndex() . '.' . $extension;
+		if (is_null($index)) 
+		{
+			if (!is_null($this->_rId))
+			{
+				$index = $this->_rId;
+			}
+			else
+			{
+				die('Media should already have been saved');
+			}
+		}
+		return $this->_uniqueName . $index . '.' . $extension;
     }
 
 	/**
@@ -196,5 +223,49 @@ class PHPExcel_Worksheet_MemoryDrawing extends PHPExcel_Worksheet_BaseDrawing im
 				$this->$key = $value;
 			}
 		}
+	}
+	
+	/*
+	* set the hashcode of the image we are referencing
+	*/
+
+	public function setReferenceHashTag($hashTag)
+	{
+		$this->_referenceHashTag = $hashTag;
+	}
+	
+	/*
+	* get the hashcode of the image we are referencing
+	*/
+	public function getReferenceHashTag()
+	{
+		return $this->_referenceHashTag ;
+	}
+	
+	/*
+	* set the rId of the image
+	*/
+	
+	public function setMediaReferenceId($rId)
+	{
+		$this->_rId = $rId;
+	}
+	
+	/*
+	* get the rId of the image
+	*/
+	public function getMediaReferenceId()
+	{
+		return $this->_rId;
+	}
+	
+	/*
+	* explicitly set the width and height of the resource
+	* This is only used by images that reference another image
+	*/
+	public function setWidthAndHeightForced($width, $height)
+	{
+		$this->_width = $width;
+		$this->_height = $height;
 	}
 }

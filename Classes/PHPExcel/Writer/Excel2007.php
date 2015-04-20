@@ -314,6 +314,59 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 				}
 			}
 
+			
+			// Add media (first add the media so we know the rId
+			$insertionCounter = 1;
+			$addedMediaReferences = array();
+			for ($i = 0; $i < $this->getDrawingHashTable()->count(); ++$i) 
+			{
+				if ($this->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_Drawing) 
+				{
+					$imageContents = null;
+					$imagePath = $this->getDrawingHashTable()->getByIndex($i)->getPath();
+					if (strpos($imagePath, 'zip://') !== false) {
+						$imagePath = substr($imagePath, 6);
+						$imagePathSplitted = explode('#', $imagePath);
+
+						$imageZip = new ZipArchive();
+						$imageZip->open($imagePathSplitted[0]);
+						$imageContents = $imageZip->getFromName($imagePathSplitted[1]);
+						$imageZip->close();
+						unset($imageZip);
+					} else {
+						$imageContents = file_get_contents($imagePath);
+					}
+
+					$objZip->addFromString('xl/media/' . str_replace(' ', '_', $this->getDrawingHashTable()->getByIndex($i)->getIndexedFilename($insertionCounter)), $imageContents);
+					$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($insertionCounter);
+					$insertionCounter++;
+				} 
+				else if ($this->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_MemoryDrawing) 
+				{
+					$referenceHashTag = $this->getDrawingHashTable()->getByIndex($i)->getReferenceHashTag();
+					if (is_null($referenceHashTag))
+					{
+						ob_start();
+						call_user_func(
+							$this->getDrawingHashTable()->getByIndex($i)->getRenderingFunction(),
+							$this->getDrawingHashTable()->getByIndex($i)->getImageResource()
+						);
+						$imageContents = ob_get_contents();
+						ob_end_clean();
+						$objZip->addFromString('xl/media/' . str_replace(' ', '_', $this->getDrawingHashTable()->getByIndex($i)->getIndexedFilename($insertionCounter)), $imageContents);
+						$addedMediaReferences[$this->getDrawingHashTable()->getByIndex($i)->getHashCode()] = $insertionCounter;
+						$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($insertionCounter);
+						$insertionCounter++;
+					}
+					else
+					{
+						// image is a reference -> don't insert it but save the insertion ID
+						$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($addedMediaReferences[$referenceHashTag]);
+					}
+				}
+			}
+
+			
 			$chartRef1 = $chartRef2 = 0;
 			// Add worksheet relationships (drawings, ...)
 			for ($i = 0; $i < $this->_spreadSheet->getSheetCount(); ++$i) {
@@ -354,41 +407,14 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 					$objZip->addFromString('xl/drawings/_rels/vmlDrawingHF' . ($i + 1) . '.vml.rels', $this->getWriterPart('Rels')->writeHeaderFooterDrawingRelationships($this->_spreadSheet->getSheet($i)));
 
 					// Media
-					foreach ($this->_spreadSheet->getSheet($i)->getHeaderFooter()->getImages() as $image) {
-						$objZip->addFromString('xl/media/' . $image->getIndexedFilename(), file_get_contents($image->getPath()));
+					foreach ($this->_spreadSheet->getSheet($i)->getHeaderFooter()->getImages() as $image) 
+					{
+						// do not add references
+						if (is_null($image->getReferenceHashTag()))
+						{
+							$objZip->addFromString('xl/media/' . $image->getIndexedFilename(), file_get_contents($image->getPath()));
+						}
 					}
-				}
-			}
-
-			// Add media
-			for ($i = 0; $i < $this->getDrawingHashTable()->count(); ++$i) {
-				if ($this->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_Drawing) {
-					$imageContents = null;
-					$imagePath = $this->getDrawingHashTable()->getByIndex($i)->getPath();
-					if (strpos($imagePath, 'zip://') !== false) {
-						$imagePath = substr($imagePath, 6);
-						$imagePathSplitted = explode('#', $imagePath);
-
-						$imageZip = new ZipArchive();
-						$imageZip->open($imagePathSplitted[0]);
-						$imageContents = $imageZip->getFromName($imagePathSplitted[1]);
-						$imageZip->close();
-						unset($imageZip);
-					} else {
-						$imageContents = file_get_contents($imagePath);
-					}
-
-					$objZip->addFromString('xl/media/' . str_replace(' ', '_', $this->getDrawingHashTable()->getByIndex($i)->getIndexedFilename()), $imageContents);
-				} else if ($this->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_MemoryDrawing) {
-					ob_start();
-					call_user_func(
-						$this->getDrawingHashTable()->getByIndex($i)->getRenderingFunction(),
-						$this->getDrawingHashTable()->getByIndex($i)->getImageResource()
-					);
-					$imageContents = ob_get_contents();
-					ob_end_clean();
-
-					$objZip->addFromString('xl/media/' . str_replace(' ', '_', $this->getDrawingHashTable()->getByIndex($i)->getIndexedFilename()), $imageContents);
 				}
 			}
 
