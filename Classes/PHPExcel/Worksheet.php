@@ -1474,6 +1474,32 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
         return $this;
     }
 	
+	public function removeConditionalStyle($pCoordinate = 'A1', $hashCode)
+    {		
+		if (isset($this->_conditionalStylesCollection[$pCoordinate]))
+		{
+			$conditions = $this->_conditionalStylesCollection[$pCoordinate];
+			foreach($conditions as $index => $condition)
+			{
+				if ($condition->getHashCode() == $hashCode)
+				{
+					if (strpos($condition->getCellReference(),':') === false)
+					{
+						// remove single cell reference formattings (cond. formatting applied to ranges will be rebuild when writing to output)
+						$condition->removeCellReference($pCoordinate);
+					}
+					// remove the reference form the collection
+					unset($this->_conditionalStylesCollection[$pCoordinate][$index]);
+				}
+			}
+			if (count($this->_conditionalStylesCollection[$pCoordinate]) == 0)
+			{
+				unset($this->_conditionalStylesCollection[$pCoordinate]);
+			}
+		}
+        return $this;
+    }
+	
 	public function updateConditionalStyles($oldCoordinates,$newCoordinates)
 	{
 		if (isset($this->_conditionalStylesCollection[$oldCoordinates]))

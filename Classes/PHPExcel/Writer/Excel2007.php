@@ -315,7 +315,7 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 			}
 
 			
-			// Add media (first add the media so we know the rId
+			// Add media (first add the media so we know the rId)
 			$insertionCounter = 1;
 			$addedMediaReferences = array();
 			for ($i = 0; $i < $this->getDrawingHashTable()->count(); ++$i) 
@@ -355,26 +355,29 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 						ob_end_clean();
 						
 						$crc = crc32($imageContents);
-						foreach ($addedMediaReferences as $referenceHashTag => $addedMedia) 
+						$hashcode = $this->getDrawingHashTable()->getByIndex($i)->getHashCode();
+						$referenceHashTag2 = null;
+						foreach ($addedMediaReferences as $rt => $addedMedia) 
 						{
-							if ($addedMedia['crc'] == $crc) { break; }
-							$referenceHashTag = null;
-						} 						
-						if(is_null($referenceHashTag))
+							if ($addedMedia['crc'] == $crc) { $referenceHashTag2 = $rt; break; }
+						} 	
+						
+						// add new images and reference images that are the same as previously added images
+						if(is_null($referenceHashTag2))
 						{
 							// this image has not been added
 							$objZip->addFromString('xl/media/' . str_replace(' ', '_', $this->getDrawingHashTable()->getByIndex($i)->getIndexedFilename($insertionCounter)), $imageContents);
-							$addedMediaReferences[$this->getDrawingHashTable()->getByIndex($i)->getHashCode()] = array('rId' => $insertionCounter, 'crc' => $crc);
+							$addedMediaReferences[$hashcode] = array('rId' => $insertionCounter, 'crc' => $crc);
 							$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($insertionCounter);
 							$insertionCounter++;
+							
 						}
 						else
 						{
 							// this image is equal to a previously added image
-							$rId = $addedMediaReferences[$referenceHashTag]['rId'];
-							$this->getDrawingHashTable()->getByIndex($i)->setReferenceHashTag($referenceHashTag);
-							$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($rId);
-							$addedMediaReferences[$this->getDrawingHashTable()->getByIndex($i)->getHashCode()] = array('rId' => $rId, 'crc' => $crc);
+							$this->getDrawingHashTable()->getByIndex($i)->setReferenceHashTag($referenceHashTag2);
+							$this->getDrawingHashTable()->getByIndex($i)->setMediaReferenceId($addedMediaReferences[$referenceHashTag2]['rId']);
+							$addedMediaReferences[$hashcode] = array('rId' => $addedMediaReferences[$referenceHashTag2]['rId'], 'crc' => $crc);
 						}
 					}
 					else

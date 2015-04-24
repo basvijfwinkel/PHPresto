@@ -332,7 +332,8 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 				if ($iterator->current() instanceof PHPExcel_Worksheet_Drawing
 					|| $iterator->current() instanceof PHPExcel_Worksheet_MemoryDrawing) {
 
-					// do not add images that are references					if (is_null($iterator->current()->getReferenceHashTag()))
+					// do not add images that are references					
+					if (is_null($iterator->current()->getReferenceHashTag()))
 					{
 						// Write relationship for image drawing
 						$this->_writeRelationship(
