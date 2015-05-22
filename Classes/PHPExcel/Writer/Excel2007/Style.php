@@ -630,12 +630,16 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 		$aFills[] = $fill1;
 		// The remaining fills
 		$aStyles 	= $this->allStyles($pPHPExcel);
-		foreach ($aStyles as $style) {
-			if (!array_key_exists($style->getFill()->getHashCode(), $aFills)) {
-				$aFills[ $style->getFill()->getHashCode() ] = $style->getFill();
-			}
+		foreach ($aStyles as $style) 
+		{
+			// do not add FILL_NONE fill styles because they must point to the first style we added above here
+			if ($style->getFill()->getFillType() != PHPExcel_Style_Fill::FILL_NONE)  
+			{																		 
+				if (!array_key_exists($style->getFill()->getHashCode(), $aFills)) {
+					$aFills[ $style->getFill()->getHashCode() ] = $style->getFill();
+				}
+			}																		 
 		}
-
 		return $aFills;
 	}
 

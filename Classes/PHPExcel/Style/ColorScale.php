@@ -66,7 +66,7 @@ class PHPExcel_Style_ColorScale extends PHPExcel_Style_GroupedConditional implem
 	 */
 	public function __construct() 
 	{
-		parent::_construct();
+		parent::__construct();
 	}	
 	
 	/**
