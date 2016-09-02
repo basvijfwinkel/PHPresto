@@ -1726,6 +1726,7 @@ class PHPExcel_Calculation {
 		if ($this->_savedPrecision < $setPrecision) {
 			ini_set('precision',$setPrecision);
 		}
+		$this->delta = 1 * pow(10, -$setPrecision);
 
 		if ($workbook !== NULL) {
 			self::$_workbookSets[$workbook->getID()] = $this;
@@ -2919,11 +2920,11 @@ class PHPExcel_Calculation {
 //				echo 'Element with value '.$val.' is an Operand, Variable, Constant, String, Number, Cell Reference or Function<br />';
 
 				if (preg_match('/^'.self::CALCULATION_REGEXP_FUNCTION.'$/i', $val, $matches)) {
-					$val = preg_replace('/\s/','',$val);
+					$val = preg_replace('/\s/u','',$val);
 //					echo 'Element '.$val.' is a Function<br />';
 					if (isset(self::$_PHPExcelFunctions[strtoupper($matches[1])]) || isset(self::$_controlFunctions[strtoupper($matches[1])])) {	// it's a function
 						$stack->push('Function', strtoupper($val));
-						$ax = preg_match('/^\s*(\s*\))/i', substr($formula, $index+$length), $amatch);
+						$ax = preg_match('/^\s*(\s*\))/ui', substr($formula, $index+$length), $amatch);
 						if ($ax) {
 							$stack->push('Operand Count for Function '.strtoupper($val).')', 0);
 							$expectingOperator = TRUE;
@@ -3600,27 +3601,39 @@ class PHPExcel_Calculation {
 				break;
 			//	Equality
 			case '=':
-				$result = ($operand1 == $operand2);
+                if (is_numeric($operand1) && is_numeric($operand2)) {
+                    $result = (abs($operand1 - $operand2) < $this->delta);
+                } else {
+                    $result = strcmp($operand1, $operand2) == 0;
+                }
 				break;
 			//	Greater than or equal
 			case '>=':
-				if ($useLowercaseFirstComparison) {
+                if (is_numeric($operand1) && is_numeric($operand2)) {
+                    $result = ((abs($operand1 - $operand2) < $this->delta) || ($operand1 > $operand2));
+				} elseif ($useLowercaseFirstComparison) {
 					$result = $this->strcmpLowercaseFirst($operand1, $operand2) >= 0;
 				} else {
-					$result = ($operand1 >= $operand2);
+					$result = strcmp($operand1, $operand2) >= 0;
 				}
 				break;
 			//	Less than or equal
 			case '<=':
-				if ($useLowercaseFirstComparison) {
+                if (is_numeric($operand1) && is_numeric($operand2)) {
+                    $result = ((abs($operand1 - $operand2) < $this->delta) || ($operand1 < $operand2));
+                } elseif ($useLowercaseFirstComparison) {
 					$result = $this->strcmpLowercaseFirst($operand1, $operand2) <= 0;
 				} else {
-					$result = ($operand1 <= $operand2);
+					$result = strcmp($operand1, $operand2) <= 0;
 				}
 				break;
 			//	Inequality
 			case '<>':
-				$result = ($operand1 != $operand2);
+                if (is_numeric($operand1) && is_numeric($operand2)) {
+                    $result = (abs($operand1 - $operand2) > 1E-14);
+                } else {
+                    $result = strcmp($operand1, $operand2) != 0;
+                }
 				break;
 		}
 
@@ -3628,21 +3641,19 @@ class PHPExcel_Calculation {
 		$this->_debugLog->writeDebugLog('Evaluation Result is ', $this->_showTypeDetails($result));
 		//	And push the result onto the stack
 		$stack->push('Value',$result);
-		return TRUE;
-	}	//	function _executeBinaryComparisonOperation()
+		return true;
+	}
 
 	/**
 	 * Compare two strings in the same way as strcmp() except that lowercase come before uppercase letters
-	 * @param string $str1
-	 * @param string $str2
-	 * @return integer
+	 * @param    string    $str1    First string value for the comparison
+	 * @param    string    $str2    Second string value for the comparison
+	 * @return   integer
 	 */
 	private function strcmpLowercaseFirst($str1, $str2)
 	{
-		$from = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-		$to = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		$inversedStr1 = strtr($str1, $from, $to);
-		$inversedStr2 = strtr($str2, $from, $to);
+        $inversedStr1 = PHPExcel_Shared_String::StrCaseReverse($str1);
+        $inversedStr2 = PHPExcel_Shared_String::StrCaseReverse($str2);
 
 		return strcmp($inversedStr1, $inversedStr2);
 	}

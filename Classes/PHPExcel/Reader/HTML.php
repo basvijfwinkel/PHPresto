@@ -217,7 +217,7 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
     {
         foreach ($element->childNodes as $child) {
             if ($child instanceof DOMText) {
-                $domText = preg_replace('/\s+/', ' ', trim($child->nodeValue));
+                $domText = preg_replace('/\s+/u', ' ', trim($child->nodeValue));
                 if (is_string($cellContent)) {
                     //	simply append the text if the cell content is a plain text string
                     $cellContent .= $domText;
@@ -395,13 +395,13 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
 
                         $this->_flushCell($sheet, $column, $row, $cellContent);
 
-                        if (isset($attributeArray['style']) && !empty($attributeArray['style'])) {
-                            $styleAry = $this->getPhpExcelStyleArray($attributeArray['style']);
-
-                            if (!empty($styleAry)) {
-                                $sheet->getStyle($column . $row)->applyFromArray($styleAry);
-                            }
-                        }
+//                        if (isset($attributeArray['style']) && !empty($attributeArray['style'])) {
+//                            $styleAry = $this->getPhpExcelStyleArray($attributeArray['style']);
+//
+//                            if (!empty($styleAry)) {
+//                                $sheet->getStyle($column . $row)->applyFromArray($styleAry);
+//                            }
+//                        }
 
                         if (isset($attributeArray['rowspan']) && isset($attributeArray['colspan'])) {
                             //create merging rowspan and colspan
@@ -475,7 +475,7 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
         //	Create a new DOM object
         $dom = new domDocument;
         //	Reload the HTML file into the DOM object
-        $loaded = $dom->loadHTMLFile($pFilename);
+        $loaded = $dom->loadHTML($this->securityScanFile($pFilename));
         if ($loaded === FALSE) {
             throw new PHPExcel_Reader_Exception('Failed to load ', $pFilename, ' as a DOM Document');
         }
@@ -513,6 +513,21 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
         $this->_sheetIndex = $pValue;
 
         return $this;
+    }
+
+	/**
+	 * Scan theXML for use of <!ENTITY to prevent XXE/XEE attacks
+	 *
+	 * @param 	string 		$xml
+	 * @throws PHPExcel_Reader_Exception
+	 */
+	public function securityScan($xml)
+	{
+        $pattern = '/\\0?' . implode('\\0?', str_split('<!ENTITY')) . '\\0?/';
+        if (preg_match($pattern, $xml)) { 
+            throw new PHPExcel_Reader_Exception('Detected use of ENTITY in XML, spreadsheet file load() aborted to prevent XXE/XEE attacks');
+        }
+        return $xml;
     }
 
 }

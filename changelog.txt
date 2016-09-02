@@ -19,10 +19,10 @@
 *
 * @copyright  Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
 * @license    http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
-* @version    ##VERSION##, ##DATE##
+* @version    1.8.1, 2015-04-30
 **************************************************************************************
 
-Planned for v1.8.1
+2015-04-30 (v1.8.1):
 - Bugfix:   (goncons)         Work Item GH-397  - Fix for Writing an Open Document cell with non-numeric formula
 - Bugfix:   (sarciszewski)    Work Item GH-329  - Avoid potential divide by zero in basedrawing
 - Bugfix:   (ymaerschalck)    Work Item GH-405  - XML External Entity (XXE) Processing, different behaviour between simplexml_load_string() and simplexml_load_file().
@@ -38,6 +38,7 @@ Planned for v1.8.1
 - Bugfix:   (wiseloren)       Work Item CP21454 - "No Impact" conditional formatting fix for NumberFormat
 - Bugfix:   (bobwitlox)       Work Item GH-467  - Bug in Excel2003XML reader, parsing merged cells
 - Bugfix:   (MBaker)          Work Item GH-302  - Fix for CEIL() and FLOOR() when number argument is zero
+- Bugfix:   (MBaker)                            - Remove cells cleanly when calling RemoveRow() or RemoveColumn()
 - General:  (MBaker)                            - Small performance improvement for autosize columns
 - General:  (frost-nzcr4)     Work Item GH-379  - Change the getter/setter for zeroHeight to camel case
 - General:  (MBaker)          Work Item GH-394  - DefaultValueBinder is too much aggressive when converting string to numeric
@@ -50,9 +51,17 @@ Planned for v1.8.1
 - Feature:  (bolovincev)      Work Item GH-269  - Update Worksheet.php getStyleByColumnAndRow() to allow a range of cells rather than just a single cell
 - Feature:  (MBaker)                            - New methods added for testing cell status within merge groups
 - Feature:  (cifren/MBaker)   Work Item GH-205  - Handling merge cells in HTML Reader
+- Feature:  (MBaker)                            - Helper to convert basic HTML markup to a Rich Text object
+- Feature:  (MBaker)                            - Improved Iterators
+                                                    New Column Iterator
+                                                    Support for row and column ranges
+                                                    Improved handling for next/prev
+- Security: (MBaker)                            - XML filescan in XML-based Readers to prevent XML Entity Expansion (XEE)
+                                                    (see http://projects.webappsec.org/w/page/13247002/XML%20Entity%20Expansion for an explanation of XEE injection) attacks
+                                                  Reference CVE-2015-3542 - Identification of problem courtesy of Dawid Golunski (Pentest Ltd.)
 
 
-2014-03-02 (v1.8.0):
+                                                  2014-03-02 (v1.8.0):
 - Bugfix:   (MBaker)          Work item CP19830 - Undefined variable: fileHandle in CSV Reader
 - Bugfix:   (MBaker)          Work item CP19968 - Out of memory in style/supervisor.php
 - Bugfix:   (MBaker)                            - Style error with merged cells in PDF Writer
