@@ -79,7 +79,14 @@ class PHPExcel_Chart_DataSeriesValues
 	 */
 	private $_pointCount = 0;
 
-	/**
+        /**
+        *   Width of the line of a linechart
+        *   default 12700 (1pt)
+        *  @var integer
+        */
+        private $_lineWidth = 12700;
+
+        /**
 	 * Data Values
 	 *
 	 * @var	array of mixed
@@ -338,4 +345,14 @@ class PHPExcel_Chart_DataSeriesValues
 			$this->_dataSource = implode('!',$parts);
 		}
 	}
+
+        public function setLineWidth($width)
+        {
+            $this->_lineWidth = $width;
+        }
+
+        public function getLineWidth()
+        {
+            return $this->_lineWidth;
+        }
 }

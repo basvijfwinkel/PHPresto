@@ -1289,7 +1289,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
       ) {
         $objWriter->startElement('c:spPr');
         $objWriter->startElement('a:ln');
-        $objWriter->writeAttribute('w', 12700);
+        $objWriter->writeAttribute('w', $plotSeriesLabel->getLineWidth());
         if ($groupType == PHPExcel_Chart_DataSeries::TYPE_STOCKCHART) {
           $objWriter->startElement('a:noFill');
           $objWriter->endElement();
