@@ -354,8 +354,8 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 						$imageContents = ob_get_contents();
 						ob_end_clean();
 						
+						// check if we have already used the same image on the same worksheet
 						$crc = crc32($imageContents).$this->_spreadSheet->getIndex($this->getDrawingHashTable()->getByIndex($i)->getWorksheet());
-
 						$hashcode = $this->getDrawingHashTable()->getByIndex($i)->getHashCode();
 						$referenceHashTag2 = null;
 						foreach ($addedMediaReferences as $rt => $addedMedia) 
@@ -363,7 +363,7 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 							if ($addedMedia['crc'] == $crc) { $referenceHashTag2 = $rt; break; }
 						} 	
 						
-						// add new images and reference images that are the same as previously added images
+						// add new images and reference images that are the same as previously added images on the same worksheet
 						if(is_null($referenceHashTag2))
 						{
 							// this image has not been added
