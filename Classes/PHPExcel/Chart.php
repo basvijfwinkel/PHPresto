@@ -223,7 +223,8 @@ class PHPExcel_Chart
 	*/
 	public function setSecondaryYAxis($secondaryYAxis)
 	{
-		$this->_secondaryYAxis = $secondaryYAxis;		
+		$this->_secondaryYAxis = $secondaryYAxis;
+                $this->_useSecondaryYAxis = true;
 		return $this;
 	}
 	
@@ -235,7 +236,8 @@ class PHPExcel_Chart
 	*/
 	public function setSecondaryXAxis($secondaryXAxis)
 	{
-		$this->_secondaryXAxis = $secondaryXAxis;		
+		$this->_secondaryXAxis = $secondaryXAxis;
+                $this->_useSecondaryYAxis = true;
 		return $this;
 	}
 	
@@ -246,7 +248,15 @@ class PHPExcel_Chart
 	*/
 	public function getSecondaryYAxis()
 	{
+             if (!is_null($this->_secondaryYAxis))
+             {
 		return $this->_secondaryYAxis;
+             }
+             else
+             {
+                 return $this->getChartAxisY();
+             }
+             
 	}
 	
 	/**
@@ -256,8 +266,25 @@ class PHPExcel_Chart
 	*/
 	public function getSecondaryXAxis()
 	{
-		return $this->_secondaryXAxis;
-	}
+            if (!is_null($this->_secondaryXAxis))
+            {
+                return $this->_secondaryXAxis;
+            }
+            else
+            {
+                // no specific secondary xAxis defined -> use the same as the primary xAxis
+                return $this->getChartAxisX();
+            }
+        }
+
+        /**
+        *   Get whether a seconday Axis is used
+        *  @return Boolean
+        */
+        public function usesSecondaryAxis()
+        {
+            return $this->_useSecondaryYAxis;
+        }
 	
 	/**
 	 * Get Name

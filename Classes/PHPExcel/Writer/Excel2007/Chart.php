@@ -43,8 +43,9 @@ class PHPExcel_Writer_Excel2007_Chart extends
    * @return  string            XML Output
    * @throws  PHPExcel_Writer_Exception
    */
-  public function writeChart(PHPExcel_Chart $pChart = NULL) {
-	
+  public function writeChart(PHPExcel_Chart $pChart = NULL) 
+  {
+
     // Create XML writer
     $objWriter = NULL;
     if ($this->getParentWriter()
@@ -87,19 +88,36 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->writeAttribute('val', 0);
     $objWriter->endElement();
 
-    $this->_writePlotArea(
-        $pChart->getPlotArea(),
-        $pChart->getXAxisLabel(),
-        $pChart->getYAxisLabel(),
-        $objWriter,
-        $pChart->getWorksheet(),
-        $pChart->getChartAxisX(),
-        $pChart->getChartAxisY(),
-        $pChart->getMajorGridlines(),
-        $pChart->getMinorGridlines(),
-		$pChart->getSecondaryYAxis(),
-		$pChart->getSecondaryXAxis()
-    );
+    if (!$pChart->usesSecondaryAxis())
+    {
+        $this->_writePlotArea(
+            $pChart->getPlotArea(),
+            $pChart->getXAxisLabel(),
+            $pChart->getYAxisLabel(),
+            $objWriter,
+            $pChart->getWorksheet(),
+            $pChart->getChartAxisX(),
+            $pChart->getChartAxisY(),
+            $pChart->getMajorGridlines(),
+            $pChart->getMinorGridlines()
+        );
+    }
+    else
+    {
+        $this->_writePlotAreaSecondaryAxis(
+            $pChart->getPlotArea(),
+            $pChart->getXAxisLabel(),
+            $pChart->getYAxisLabel(),
+            $objWriter,
+            $pChart->getWorksheet(),
+            $pChart->getChartAxisX(),
+            $pChart->getChartAxisY(),
+            $pChart->getMajorGridlines(),
+            $pChart->getMinorGridlines(),
+            $pChart->getSecondaryYAxis(),
+            $pChart->getSecondaryXAxis()
+        );
+    }
 
     $this->_writeLegend($pChart->getLegend(), $objWriter);
 
@@ -240,7 +258,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
   }
   
   /**
-   * Write Chart Plot Area
+   * Write Chart Plot Area (default)
    *
    * @param  PHPExcel_Chart_PlotArea $plotArea
    * @param  PHPExcel_Chart_Title $xAxisLabel
@@ -259,9 +277,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
       PHPExcel_Chart_Axis $xAxis,
       PHPExcel_Chart_Axis $yAxis,
       PHPExcel_Chart_GridLines $majorGridlines,
-      PHPExcel_Chart_GridLines $minorGridlines,
-	  PHPExcel_Chart_Axis $secondaryYAxis = NULL,
-	  PHPExcel_Chart_Axis $secondaryXAxis = NULL
+      PHPExcel_Chart_GridLines $minorGridlines
   ) 
   {
     if (is_null($plotArea)) {   return;  }
@@ -271,20 +287,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
 	//	Generate 2 unique numbers to use for axId values
 	$id1 = $this->_generateUniqueID(array());
 	$id2 = $this->_generateUniqueID(array($id1));
-	if (!is_null($secondaryYAxis))
-	{
-		$id3 = $this->_generateUniqueID(array($id1,$id2));
-		$id4 = $this->_generateUniqueID(array($id1,$id2,$id3));
-	}
-	/*var_dump($id1);
-	var_dump($id2);
-	var_dump($id3);
-	var_dump($id4);
-	$id1 = '11111111';
-	$id2 = '22222222';
-	$id3 = '33333333';
-	$id4 = '44444444';
-	*/
+
     $objWriter->startElement('c:plotArea');
 
     $layout = $plotArea->getLayout();
@@ -379,12 +382,11 @@ class PHPExcel_Writer_Excel2007_Chart extends
 
 		if (($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART_3D) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_DONUTCHART)) 
 		{
-			// if a secondary axis is used -> use secondary id st for the the axID entries
 			$objWriter->startElement('c:axId');
-			if ((is_null($secondaryYAxis)) || ($chartIndex == 0)) { $objWriter->writeAttribute('val', $id1); } else { $objWriter->writeAttribute('val', $id3); }
+			$objWriter->writeAttribute('val', $id1);
 			$objWriter->endElement();
 			$objWriter->startElement('c:axId');
-			if ((is_null($secondaryYAxis))  || ($chartIndex == 0)) { $objWriter->writeAttribute('val', $id2); } else { $objWriter->writeAttribute('val', $id4); }
+			$objWriter->writeAttribute('val', $id2);
 			$objWriter->endElement();
 		} 
 		else 
@@ -416,26 +418,197 @@ class PHPExcel_Writer_Excel2007_Chart extends
 			$this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id1, $id2, $catIsMultiLevelSeries, $xAxis, $yAxis);
 		}
 		$this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id1, $id2, $valIsMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines);
-		
-		// if a secondary axis is used : write out the secondary axis CatAx/ValAx pair
-		if (!is_null($secondaryYAxis)) 
-		{
-			if ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
-			{
-				$this->_writeValAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $xAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
-			} 
-			else 
-			{
-				$this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis,true);
-			}
-			$this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id3, $id4, $valIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
-		}
-
 	}
 
     $objWriter->endElement();
 	
   }
+
+
+  /**
+   * Write Chart Plot Area (secondaryAxis)
+   *
+   * @param  PHPExcel_Chart_PlotArea $plotArea
+   * @param  PHPExcel_Chart_Title $xAxisLabel
+   * @param  PHPExcel_Chart_Title $yAxisLabel
+   * @param  PHPExcel_Chart_Axis $xAxis
+   * @param  PHPExcel_Chart_Axis $yAxis
+   * @param  PHPExcel_Shared_XMLWriter $objWriter XML Writer
+   *
+   * @throws  PHPExcel_Writer_Exception
+   */
+  private function _writePlotAreaSecondaryAxis(PHPExcel_Chart_PlotArea $plotArea,
+      PHPExcel_Chart_Title $xAxisLabel = NULL,
+      PHPExcel_Chart_Title $yAxisLabel = NULL,
+      $objWriter,
+      PHPExcel_Worksheet $pSheet,
+      PHPExcel_Chart_Axis $xAxis,
+      PHPExcel_Chart_Axis $yAxis,
+      PHPExcel_Chart_GridLines $majorGridlines,
+      PHPExcel_Chart_GridLines $minorGridlines,
+      PHPExcel_Chart_Axis $secondaryYAxis = NULL,
+      PHPExcel_Chart_Axis $secondaryXAxis = NULL
+  ) 
+  {
+    if (is_null($plotArea)) {   return;  }
+
+    $this->_seriesIndex = 0;
+
+        // Generate 4 unique numbers to use for axId values
+        $id1 = $this->_generateUniqueID(array());
+        $id2 = $this->_generateUniqueID(array($id1));
+        $id3 = $this->_generateUniqueID(array($id1,$id2));
+        $id4 = $this->_generateUniqueID(array($id1,$id2,$id3));
+// DEBUG ==================
+        $id1 = '11111111';
+        $id2 = '22222222';
+        $id3 = '33333333';
+        $id4 = '44444444';
+// DEBUG ===================
+        $objWriter->startElement('c:plotArea');
+
+        $layout = $plotArea->getLayout();
+        $this->_writeLayout($layout, $objWriter);
+
+        $chartTypes = self::_getChartType($plotArea, true);
+        $catIsMultiLevelSeries = $valIsMultiLevelSeries = FALSE;
+        $plotGroupingType = '';
+
+        foreach ($chartTypes as $plotSeriesIndex => $chartType) 
+        {
+            $isSecondaryAxis = ($plotSeriesIndex === 0); // 0 = primary axis, 1 = secondary axis
+
+            $objWriter->startElement('c:' . $chartType);
+            $plotGroup = $plotArea->getPlotGroupByIndex($plotSeriesIndex);
+            $groupType = $plotGroup->getPlotType();
+            $plotStyle = $plotGroup->getPlotStyle();
+            if ($groupType === PHPExcel_Chart_DataSeries::TYPE_RADARCHART) 
+            {
+                $objWriter->startElement('c:radarStyle');
+                $objWriter->writeAttribute('val', $plotStyle);
+                $objWriter->endElement();
+            } 
+            elseif ($groupType === PHPExcel_Chart_DataSeries::TYPE_SCATTERCHART) 
+            {
+                $objWriter->startElement('c:scatterStyle');
+                $objWriter->writeAttribute('val', $plotStyle);
+                $objWriter->endElement();
+            }
+
+            // </c:ser>
+            $this->_writePlotGroup($plotGroup, $chartType, $objWriter, $catIsMultiLevelSeries, $valIsMultiLevelSeries, $plotGroupingType, $pSheet);
+
+            // <c:dLbls>
+            $this->_writeDataLbls($objWriter, $layout);
+
+            if ($chartType === PHPExcel_Chart_DataSeries::TYPE_LINECHART) 
+            {
+                //Line only, Line3D can't be smoothed
+                $objWriter->startElement('c:smooth');
+                $objWriter->writeAttribute('val', (integer) $plotGroup->getSmoothLine());
+                $objWriter->endElement();
+            } 
+            elseif (($chartType === PHPExcel_Chart_DataSeries::TYPE_BARCHART) || ($chartType === PHPExcel_Chart_DataSeries::TYPE_BARCHART_3D)) 
+            {
+
+                $objWriter->startElement('c:gapWidth');
+                $objWriter->writeAttribute('val', 150);
+                $objWriter->endElement();
+
+                if ($plotGroupingType == 'percentStacked' || $plotGroupingType == 'stacked') 
+                {
+                     $objWriter->startElement('c:overlap');
+                     $objWriter->writeAttribute('val', 100);
+                     $objWriter->endElement();
+                }
+            } 
+            elseif ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
+            {
+                $objWriter->startElement('c:bubbleScale');
+                $objWriter->writeAttribute('val', 25);
+                $objWriter->endElement();
+
+                $objWriter->startElement('c:showNegBubbles');
+                $objWriter->writeAttribute('val', 0);
+                $objWriter->endElement();
+            } 
+            elseif ($chartType === PHPExcel_Chart_DataSeries::TYPE_STOCKCHART) 
+            {
+                $objWriter->startElement('c:hiLowLines');
+                $objWriter->endElement();
+
+                $objWriter->startElement('c:upDownBars');
+
+                $objWriter->startElement('c:gapWidth');
+                $objWriter->writeAttribute('val', 300);
+                $objWriter->endElement();
+
+                $objWriter->startElement('c:upBars');
+                $objWriter->endElement();
+
+                $objWriter->startElement('c:downBars');
+                $objWriter->endElement();
+
+                $objWriter->endElement();
+            }
+
+            // <c:axId>
+            if (($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART_3D) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_DONUTCHART)) 
+            {
+                 // if a secondary axis is used -> use secondary id st for the the axID entries
+                $objWriter->startElement('c:axId');
+                $objWriter->writeAttribute('val', (!$isSecondaryAxis)?$id1:$id3); 
+                $objWriter->endElement();
+
+                $objWriter->startElement('c:axId');
+                $objWriter->writeAttribute('val', (!$isSecondaryAxis)?$id2:$id4);
+                $objWriter->endElement();
+            } 
+            else 
+            {
+                $objWriter->startElement('c:firstSliceAng');
+                $objWriter->writeAttribute('val', 0);
+                $objWriter->endElement();
+
+                if ($chartType === PHPExcel_Chart_DataSeries::TYPE_DONUTCHART) 
+                {
+                    $objWriter->startElement('c:holeSize');
+                    $objWriter->writeAttribute('val', 50);
+                    $objWriter->endElement();
+                }
+            }
+            $objWriter->endElement();
+        }
+
+        if (($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART_3D) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_DONUTCHART)) 
+        {
+            // write out the secondary axis CatAx/ValAx pair
+            if ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
+            {
+                     $this->_writeValAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id1, $id2, $catIsMultiLevelSeries, $xAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
+            } 
+            else
+            {
+                     $this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id1, $id2, $catIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis,true);
+            }
+            $this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id1, $id2, $valIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
+
+            // first write out the primary axis
+            if ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
+            {
+                  $this->_writeValAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines);
+            } 
+            else
+            {
+                 $this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $xAxis, $yAxis);
+            }
+            $this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id3, $id4, $valIsMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines);
+
+        }
+
+        $objWriter->endElement();
+    }
+
 
   /**
    * Write Data Labels
@@ -520,14 +693,14 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:delete');
-	if (!$isSecondaryYAxis)
-	{
-		$objWriter->writeAttribute('val', 0);
-	}
-	else
-	{
-		$objWriter->writeAttribute('val', 1);
-	}
+    if (!$isSecondaryYAxis)
+    {
+        $objWriter->writeAttribute('val', 0);
+    }
+    else
+    {
+       $objWriter->writeAttribute('val', 1);
+    }
     $objWriter->endElement();
 
     $objWriter->startElement('c:axPos');
@@ -553,7 +726,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
         $caption = $caption[0];
       }
       $objWriter->startElement('a:t');
-      //										$objWriter->writeAttribute('xml:space', 'preserve');
+      //$objWriter->writeAttribute('xml:space', 'preserve');
       $objWriter->writeRawData(PHPExcel_Shared_String::ControlCharacterPHP2OOXML($caption));
       $objWriter->endElement();
 
@@ -645,9 +818,9 @@ class PHPExcel_Writer_Excel2007_Chart extends
    *
    * @throws  PHPExcel_Writer_Exception
    */
-  private function _writeValAx($objWriter, PHPExcel_Chart_PlotArea $plotArea, $yAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines, $isSecondaryAxis=false) {
-    
-	$objWriter->startElement('c:valAx');
+  private function _writeValAx($objWriter, PHPExcel_Chart_PlotArea $plotArea, $yAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines, $isSecondaryAxis=false) 
+  {
+    $objWriter->startElement('c:valAx');
 
     if ($id2 > 0) {
       $objWriter->startElement('c:axId');
@@ -657,15 +830,15 @@ class PHPExcel_Writer_Excel2007_Chart extends
 
     $objWriter->startElement('c:scaling');
     $objWriter->startElement('c:orientation');
-	
-	if (!$isSecondaryAxis)
-	{
-		$objWriter->writeAttribute('val', $xAxis->getAxisOptionsProperty('orientation'));
-	}
-	else
-	{
-		$objWriter->writeAttribute('val', $yAxis->getAxisOptionsProperty('orientation'));
-	}
+
+    if (!$isSecondaryAxis)
+    {
+        $objWriter->writeAttribute('val', $xAxis->getAxisOptionsProperty('orientation'));
+    }
+    else
+    {
+        $objWriter->writeAttribute('val', $yAxis->getAxisOptionsProperty('orientation'));
+    }
 
     if (!is_null($xAxis->getAxisOptionsProperty('maximum'))) {
       $objWriter->startElement('c:max');
@@ -683,7 +856,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:delete');
-	$objWriter->writeAttribute('val', 0);
+    $objWriter->writeAttribute('val', 0);
     $objWriter->endElement();
 
     $objWriter->startElement('c:axPos');
@@ -927,7 +1100,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
       }
 
       $objWriter->startElement('a:t');
-      //										$objWriter->writeAttribute('xml:space', 'preserve');
+      //$objWriter->writeAttribute('xml:space', 'preserve');
       $objWriter->writeRawData(PHPExcel_Shared_String::ControlCharacterPHP2OOXML($caption));
       $objWriter->endElement();
 
@@ -1149,29 +1322,29 @@ class PHPExcel_Writer_Excel2007_Chart extends
    * @return  string|array
    * @throws  PHPExcel_Writer_Exception
    */
-  private
-  static function _getChartType($plotArea) {
-    $groupCount = $plotArea->getPlotGroupCount();
+    private static function _getChartType($plotArea, $nouniques = false) 
+    {
+        $groupCount = $plotArea->getPlotGroupCount();
 
-    if ($groupCount == 1) {
-      $chartType = array(
-          $plotArea->getPlotGroupByIndex(0)
-              ->getPlotType()
-      );
-    } else {
-      $chartTypes = array();
-      for ($i = 0; $i < $groupCount; ++$i) {
-        $chartTypes[] = $plotArea->getPlotGroupByIndex($i)
-            ->getPlotType();
-      }
-      $chartType = array_unique($chartTypes);
-      if (count($chartTypes) == 0) {
-        throw new PHPExcel_Writer_Exception('Chart is not yet implemented');
-      }
+        if ($groupCount == 1) 
+        {
+           $chartType = array($plotArea->getPlotGroupByIndex(0)->getPlotType());
+        } 
+        else 
+        {
+            $chartTypes = array();
+            for ($i = 0; $i < $groupCount; ++$i) 
+            {
+                $chartTypes[] = $plotArea->getPlotGroupByIndex($i)->getPlotType();
+            }
+            $chartType = (!$nouniques)?array_unique($chartTypes):$chartTypes;
+            if (count($chartTypes) == 0) 
+            {
+                throw new PHPExcel_Writer_Exception('Chart is not yet implemented');
+            }
+        }
+        return $chartType;
     }
-
-    return $chartType;
-  }
 
   /**
    * Write Plot Group (series of related plots)
@@ -1238,6 +1411,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
       }
     }
 
+    // write out data series
     foreach ($plotSeriesOrder as $plotSeriesIdx => $plotSeriesRef) {
       $objWriter->startElement('c:ser');
 

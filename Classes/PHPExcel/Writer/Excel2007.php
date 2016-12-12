@@ -354,7 +354,8 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 						$imageContents = ob_get_contents();
 						ob_end_clean();
 						
-						$crc = crc32($imageContents);
+						$crc = crc32($imageContents).$this->_spreadSheet->getIndex($this->getDrawingHashTable()->getByIndex($i)->getWorksheet());
+
 						$hashcode = $this->getDrawingHashTable()->getByIndex($i)->getHashCode();
 						$referenceHashTag2 = null;
 						foreach ($addedMediaReferences as $rt => $addedMedia) 
