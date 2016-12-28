@@ -621,6 +621,17 @@ class PHPExcel_Writer_Excel2007_Chart extends
   private function _writeDataLbls($objWriter, $chartLayout) {
     $objWriter->startElement('c:dLbls');
 
+    if (!is_null($chartLayout))
+    {
+        $datalabelpos = $chartLayout->getDataLabelPosition();
+        if ($datalabelpos != 'ctr')
+        {
+            $objWriter->startElement('c:dLblPos');
+            $objWriter->writeAttribute('val', $datalabelpos);
+            $objWriter->endElement();
+        }
+    }
+
     $objWriter->startElement('c:showLegendKey');
     $showLegendKey = (empty($chartLayout)) ? 0 : $chartLayout->getShowLegendKey();
     $objWriter->writeAttribute('val', ((empty($showLegendKey)) ? 0 : 1));
@@ -1135,7 +1146,6 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:tickLblPos');
-	
     $objWriter->writeAttribute('val', $xAxis->getAxisOptionsProperty('axis_labels'));
     $objWriter->endElement();
 
@@ -1483,7 +1493,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
 
           if ($plotSeriesMarker !== 'none') {
             $objWriter->startElement('c:size');
-            $objWriter->writeAttribute('val', 3);
+            $objWriter->writeAttribute('val', $plotSeriesValues->getPointMarkerSize());
             $objWriter->endElement();
           }
 

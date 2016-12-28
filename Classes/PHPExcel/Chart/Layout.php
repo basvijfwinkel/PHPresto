@@ -35,6 +35,13 @@
  */
 class PHPExcel_Chart_Layout
 {
+        // data label positions
+        const LABEL_POS_CENTER = 'ctr';
+        const LABEL_POS_TOP    = 't';
+        const LABEL_POS_BOTTOM = 'b';
+        const LABEL_POS_LEFT   = 'l';
+        const LABEL_POS_RIGHT  = 'r';
+
 	/**
 	 * layoutTarget
 	 *
@@ -139,6 +146,13 @@ class PHPExcel_Chart_Layout
 	 */
 	private $_showLeaderLines	= NULL;
 
+	/**
+	 * data label position
+	 * Specifies the position for the label
+	 *
+	 * @var string ctr/t/b/l/r
+	 */
+	private $_dataLabelPosition = self::LABEL_POS_CENTER;
 
 	/**
 	 * Create a new PHPExcel_Chart_Layout
@@ -441,5 +455,26 @@ class PHPExcel_Chart_Layout
 		$this->_showLeaderLines = $value;
         return $this;
 	}
+
+        /**
+         * Get the data label position
+         *
+         * @return string / const
+         */
+         public function getDataLabelPosition() {
+                return $this->_dataLabelPosition;
+         }
+
+         /**
+          * Set the data label position
+          *  Specifies that the data label position
+          *
+          * @param string / PHPExcel_Chart_Layout::LABEL_POS_CENTER LABEL_POS_TOP LABEL_POS_BOTTOM LABEL_POS_RIGHT LABEL_POS_LEFT
+          * @return PHPExcel_Chart_Layout
+         */
+         public function setDataLabelPosition($value) {
+             $this->_dataLabelPosition = $value;
+             return $this;
+        }
 
 }
