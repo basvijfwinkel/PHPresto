@@ -154,6 +154,13 @@ class PHPExcel_Chart_Layout
 	 */
 	private $_dataLabelPosition = self::LABEL_POS_CENTER;
 
+        /**
+         * data label color
+         * default : black
+         * @var string hex RGB color code
+         */
+        private $_dataLabelColor = "000000";
+
 	/**
 	 * Create a new PHPExcel_Chart_Layout
 	 */
@@ -477,4 +484,14 @@ class PHPExcel_Chart_Layout
              return $this;
         }
 
+        public function getDataLabelColor() 
+        {
+                return $this->_dataLabelColor;
+        }
+
+        public function setDataLabelColor($value) 
+        {
+             $this->_dataLabelColor = $value;
+             return $this;
+        }
 }

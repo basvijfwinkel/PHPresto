@@ -97,6 +97,17 @@ class PHPExcel_Chart_DataSeriesValues
         private $_lineWidth = 12700;
 
         /**
+        *   Color of the line of a linechart
+        *   default null (writer will assign one of the default colors
+        *  @var integer
+        */
+        private $_lineColor = null;
+
+
+        private $_dataLabelPosition = 'ctr';
+        private $_dataLabelColor = '000000';
+
+        /**
 	 * Data Values
 	 *
 	 * @var	array of mixed
@@ -388,4 +399,35 @@ class PHPExcel_Chart_DataSeriesValues
         {
             return $this->_lineWidth;
         }
+
+        public function setLineColor($color)
+        {
+            $this->_lineColor = $color;
+        }
+
+        public function getLineColor()
+        {
+            return $this->_lineColor;
+        }
+
+        public function setDataLabelColor($color)
+        {
+            $this->_dataLabelColor = $color;
+        }
+
+        public function getDataLabelColor()
+        {
+            return $this->_dataLabelColor;
+        }
+
+        public function setDataLabelPosition($position)
+        {
+            $this->_dataLabelPosition = $position;
+        }
+
+        public function getDataLabelPosition()
+        {
+            return $this->_dataLabelPosition;
+        }
+
 }
