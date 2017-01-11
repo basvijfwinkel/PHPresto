@@ -620,7 +620,53 @@ class PHPExcel_Writer_Excel2007_Chart extends
    */
   private function _writeDataLbls($objWriter, $chartLayout) {
     $objWriter->startElement('c:dLbls');
+/* // moved to DataSeriesValues to enable individual line colors
+    if (!is_null($chartLayout))
+    {
+        if ($chartLayout->getDataLabelColor() != '000000')
+        {
+        $objWriter->startElement('c:txPr');
+          $objWriter->startElement('a:bodyPr');
+             $objWriter->writeAttribute('wrap',   'square');
+             $objWriter->writeAttribute('lIns',   '38100');
+             $objWriter->writeAttribute('tIns',   '19050');
+             $objWriter->writeAttribute('rIns',   '38100');
+             $objWriter->writeAttribute('bIns',   '19050');
+             $objWriter->writeAttribute('anchor', 'ctr');
+             $objWriter->startElement('a:spAutoFit');
+             $objWriter->endElement();
+          $objWriter->endElement();
+          $objWriter->startElement('a:lstStyle');
+          $objWriter->endElement();
 
+        $objWriter->startElement('a:p');
+          $objWriter->startElement('a:pPr');
+            $objWriter->startElement('a:defRPr');
+              $objWriter->startElement('a:solidFill');
+                $objWriter->startElement('a:srgbClr');
+                $objWriter->writeAttribute('val', $chartLayout->getDataLabelColor());
+                $objWriter->endElement();
+              $objWriter->endElement();
+            $objWriter->endElement();
+          $objWriter->endElement();
+          $objWriter->startElement('a:endParaRPr');
+            $objWriter->writeAttribute('lang', 'en-US');
+          $objWriter->endElement();
+        $objWriter->endElement();
+
+        $objWriter->endElement();
+
+
+        }
+        $datalabelpos = $chartLayout->getDataLabelPosition();
+        if ($datalabelpos != 'ctr')
+        {
+            $objWriter->startElement('c:dLblPos');
+            $objWriter->writeAttribute('val', $datalabelpos);
+            $objWriter->endElement();
+        }
+    }
+*/
     $objWriter->startElement('c:showLegendKey');
     $showLegendKey = (empty($chartLayout)) ? 0 : $chartLayout->getShowLegendKey();
     $objWriter->writeAttribute('val', ((empty($showLegendKey)) ? 0 : 1));
@@ -1135,7 +1181,6 @@ class PHPExcel_Writer_Excel2007_Chart extends
     $objWriter->endElement();
 
     $objWriter->startElement('c:tickLblPos');
-	
     $objWriter->writeAttribute('val', $xAxis->getAxisOptionsProperty('axis_labels'));
     $objWriter->endElement();
 
@@ -1411,8 +1456,18 @@ class PHPExcel_Writer_Excel2007_Chart extends
       }
     }
 
+    // default colors for when the user does not select a specific color
+    $defaultColorCounter = 0;
+    $lineColorsDefault = array("5182BB","BE5150","9CBA5F","8066A0",
+                               "51ACC4","F59650","2E4E74","762D2C",
+                               "5F7434","4D3C61","2B6A7B","B4571A",
+                               "749BC8","CB7373","B0C87E","9984B4");
+
+ 
+
     // write out data series
     foreach ($plotSeriesOrder as $plotSeriesIdx => $plotSeriesRef) {
+
       $objWriter->startElement('c:ser');
 
       $objWriter->startElement('c:idx');
@@ -1447,8 +1502,29 @@ class PHPExcel_Writer_Excel2007_Chart extends
         $objWriter->endElement();
       }
 
-      //	Labels
+      // get the plot series to determine the color
+      $plotSeriesValues = $plotGroup->getPlotValuesByIndex($plotSeriesRef);
+      if ($plotSeriesValues) 
+      {
+          $usesCustomColor = false;
+          // determine if a custom color was set
+          if (!is_null($plotSeriesValues->getLineColor()))
+          {
+             // use color specified for this label
+             $lineColor = $plotSeriesValues->getLineColor();
+             $usesCustomColor = true;
+          }
+          else
+          {
+             // use default color
+             $lineColor = $lineColorsDefault[($defaultColorCounter % count($lineColorsDefault))];
+             $defaultColorCounter++;
+           }
+      }
+
+      // Labels
       $plotSeriesLabel = $plotGroup->getPlotLabelByIndex($plotSeriesRef);
+
       if ($plotSeriesLabel && ($plotSeriesLabel->getPointCount() > 0)) {
         $objWriter->startElement('c:tx');
         $objWriter->startElement('c:strRef');
@@ -1457,37 +1533,158 @@ class PHPExcel_Writer_Excel2007_Chart extends
         $objWriter->endElement();
       }
 
+      // color of the line
+      if ($groupType !== PHPExcel_Chart_DataSeries::TYPE_LINECHART && $groupType !== PHPExcel_Chart_DataSeries::TYPE_STOCKCHART) 
+      {
+         $objWriter->startElement('c:spPr');
+         $objWriter->startElement('a:solidFill');
+         $objWriter->startElement('a:srgbClr');
+         $objWriter->writeAttribute('val',$lineColor);
+         $objWriter->endElement();
+         $objWriter->endElement();
+         $objWriter->endElement();
+      }
+
       //	Formatting for the points
       if (($groupType == PHPExcel_Chart_DataSeries::TYPE_LINECHART) ||
           ($groupType == PHPExcel_Chart_DataSeries::TYPE_STOCKCHART)
       ) {
         $objWriter->startElement('c:spPr');
         $objWriter->startElement('a:ln');
+        // line width
         $objWriter->writeAttribute('w', $plotSeriesLabel->getLineWidth());
-        if ($groupType == PHPExcel_Chart_DataSeries::TYPE_STOCKCHART) {
+        if ($groupType == PHPExcel_Chart_DataSeries::TYPE_STOCKCHART) 
+        {
           $objWriter->startElement('a:noFill');
           $objWriter->endElement();
         }
+        // line color
+        $objWriter->startElement('a:solidFill');
+        $objWriter->startElement('a:srgbClr');
+        $objWriter->writeAttribute('val',$lineColor);
+        $objWriter->endElement();
+        $objWriter->endElement();
+
         $objWriter->endElement();
         $objWriter->endElement();
       }
 
       $plotSeriesValues = $plotGroup->getPlotValuesByIndex($plotSeriesRef);
       if ($plotSeriesValues) {
+
         $plotSeriesMarker = $plotSeriesValues->getPointMarker();
-        if ($plotSeriesMarker) {
+        if ($plotSeriesMarker) 
+        {
           $objWriter->startElement('c:marker');
-          $objWriter->startElement('c:symbol');
-          $objWriter->writeAttribute('val', $plotSeriesMarker);
-          $objWriter->endElement();
+              $objWriter->startElement('c:symbol');
+              $objWriter->writeAttribute('val', $plotSeriesMarker);
+              $objWriter->endElement();
 
           if ($plotSeriesMarker !== 'none') {
             $objWriter->startElement('c:size');
-            $objWriter->writeAttribute('val', 3);
+            $objWriter->writeAttribute('val', $plotSeriesValues->getPointMarkerSize());
+            $objWriter->endElement();
+          }
+
+          if (($groupType == PHPExcel_Chart_DataSeries::TYPE_LINECHART) && ($usesCustomColor))
+          { 
+            // TODO : make marker line and fill color a property like lineColor
+            // only add color markers for linecharts and custom colors
+            $objWriter->startElement('c:spPr');
+              $objWriter->startElement('a:solidFill');
+                  $objWriter->startElement('a:srgbClr');
+                  $objWriter->writeAttribute('val', $lineColor);
+                  $objWriter->endElement();
+              $objWriter->endElement();
+
+              $objWriter->startElement('a:ln');
+                  $objWriter->startElement('a:solidFill');
+                      $objWriter->startElement('a:srgbClr');
+                      $objWriter->writeAttribute('val', $lineColor);
+                      $objWriter->endElement();
+                  $objWriter->endElement();
+              $objWriter->endElement();
+
             $objWriter->endElement();
           }
 
           $objWriter->endElement();
+
+//-----------------
+if ($plotSeriesValues)
+{
+    $dataLabelColor = $plotSeriesValues->getDataLabelColor();
+    $dataLabelPosition = $plotSeriesValues->getDataLabelPosition();
+//$dataLabelColor = '000000';
+//$dataLabelPosition = 't';
+    if (($dataLabelColor != '000000') || ($dataLabelPosition != 'ctr'))
+    {
+      $objWriter->startElement('c:dLbls');
+           $objWriter->startElement('c:spPr');
+                $objWriter->startElement('a:noFill');
+                $objWriter->endElement();
+                    $objWriter->startElement('a:ln');
+                        $objWriter->startElement('a:noFill');
+                        $objWriter->endElement();
+                    $objWriter->endElement();
+                $objWriter->startElement('a:effectLst');
+                $objWriter->endElement();
+           $objWriter->endElement();
+
+       // color of the data labels=
+       if ($dataLabelColor != '000000') 
+       {
+       $objWriter->startElement('c:txPr');
+         $objWriter->startElement('a:bodyPr');
+            $objWriter->writeAttribute('wrap',   'square');
+            $objWriter->writeAttribute('lIns',   '38100');
+            $objWriter->writeAttribute('tIns',   '19050');
+            $objWriter->writeAttribute('rIns',   '38100');
+            $objWriter->writeAttribute('bIns',   '19050');
+            $objWriter->writeAttribute('anchor', 'ctr');
+            $objWriter->startElement('a:spAutoFit');
+            $objWriter->endElement();
+         $objWriter->endElement();
+         $objWriter->startElement('a:lstStyle');
+         $objWriter->endElement();
+         
+       $objWriter->startElement('a:p');
+         $objWriter->startElement('a:pPr');
+           $objWriter->startElement('a:defRPr');
+             $objWriter->startElement('a:solidFill');
+               $objWriter->startElement('a:srgbClr');
+               $objWriter->writeAttribute('val', $dataLabelColor);
+               $objWriter->endElement();
+             $objWriter->endElement();
+           $objWriter->endElement();
+         $objWriter->endElement();
+         $objWriter->startElement('a:endParaRPr');
+           $objWriter->writeAttribute('lang', 'en-US');
+         $objWriter->endElement();
+       $objWriter->endElement();
+       $objWriter->endElement();
+     }
+     // label position
+     if ($dataLabelPosition != 'ctr')
+     {
+          $objWriter->startElement('c:dLblPos');
+          $objWriter->writeAttribute('val', $dataLabelPosition);
+          $objWriter->endElement();
+      }
+
+        $objWriter->startElement('c:showLegendKey');  $objWriter->writeAttribute('val', '0');$objWriter->endElement();
+        $objWriter->startElement('c:showVal');        $objWriter->writeAttribute('val', '1');$objWriter->endElement();
+        $objWriter->startElement('c:showCatName');    $objWriter->writeAttribute('val', '0');$objWriter->endElement();
+        $objWriter->startElement('c:showSerName');    $objWriter->writeAttribute('val', '0');$objWriter->endElement();
+        $objWriter->startElement('c:showPercent');    $objWriter->writeAttribute('val', '0');$objWriter->endElement();
+        $objWriter->startElement('c:showBubbleSize'); $objWriter->writeAttribute('val', '0');$objWriter->endElement();
+        $objWriter->startElement('c:showLeaderLines');$objWriter->writeAttribute('val', '0');$objWriter->endElement();
+
+      $objWriter->endElement();
+    }
+}
+//----------------
+
         }
       }
 
@@ -1554,7 +1751,6 @@ class PHPExcel_Writer_Excel2007_Chart extends
       }
 
       $objWriter->endElement();
-
     }
 
     $this->_seriesIndex += $plotSeriesIdx + 1;

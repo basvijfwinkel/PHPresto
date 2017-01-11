@@ -39,6 +39,9 @@ class PHPExcel_Chart_DataSeriesValues
 	const DATASERIES_TYPE_STRING	= 'String';
 	const DATASERIES_TYPE_NUMBER	= 'Number';
 
+        const MARKER_TYPE_SQUARE = 'square';
+        const MARKER_TYPE_CIRCLE = 'circle';
+
 	private static $_dataTypeValues = array(
 		self::DATASERIES_TYPE_STRING,
 		self::DATASERIES_TYPE_NUMBER,
@@ -73,6 +76,13 @@ class PHPExcel_Chart_DataSeriesValues
 	private $_marker = null;
 
 	/**
+	 * Series Point Marker Size
+	 *
+	 * @var	string
+	 */
+	private $_markersize = null;
+
+	/**
 	 * Point Count (The number of datapoints in the dataseries)
 	 *
 	 * @var	integer
@@ -85,6 +95,17 @@ class PHPExcel_Chart_DataSeriesValues
         *  @var integer
         */
         private $_lineWidth = 12700;
+
+        /**
+        *   Color of the line of a linechart
+        *   default null (writer will assign one of the default colors
+        *  @var integer
+        */
+        private $_lineColor = null;
+
+
+        private $_dataLabelPosition = 'ctr';
+        private $_dataLabelColor = '000000';
 
         /**
 	 * Data Values
@@ -185,6 +206,29 @@ class PHPExcel_Chart_DataSeriesValues
 
 		return $this;
 	}
+
+
+
+        /**
+         * Get Point Marker Size
+         *
+         * @return string
+        */
+        public function getPointMarkerSize() {
+           return $this->_markersize;
+        }
+
+        /**
+         * Set Point Marker Size
+         *
+         * @param     string<>$marker
+         * @return    PHPExcel_Chart_DataSeriesValues
+        */
+         public function setPointMarkerSize($markersize = null) {
+             $this->_markersize = $markersize;
+             return $this;
+        }
+
 
 	/**
 	 * Get Series Format Code
@@ -355,4 +399,35 @@ class PHPExcel_Chart_DataSeriesValues
         {
             return $this->_lineWidth;
         }
+
+        public function setLineColor($color)
+        {
+            $this->_lineColor = $color;
+        }
+
+        public function getLineColor()
+        {
+            return $this->_lineColor;
+        }
+
+        public function setDataLabelColor($color)
+        {
+            $this->_dataLabelColor = $color;
+        }
+
+        public function getDataLabelColor()
+        {
+            return $this->_dataLabelColor;
+        }
+
+        public function setDataLabelPosition($position)
+        {
+            $this->_dataLabelPosition = $position;
+        }
+
+        public function getDataLabelPosition()
+        {
+            return $this->_dataLabelPosition;
+        }
+
 }
