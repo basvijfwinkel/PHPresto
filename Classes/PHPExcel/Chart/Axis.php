@@ -24,6 +24,14 @@ class PHPExcel_Chart_Axis extends
   );
 
   /**
+   *
+   *
+   *
+   * @var rotation of the labels of the axis in degrees
+   */
+   private $_axis_text_rotation = 0;
+
+  /**
    * Axis Options
    *
    * @var  array of mixed
@@ -590,4 +598,14 @@ class PHPExcel_Chart_Axis extends
   public function getSoftEdgesSize() {
     return $this->_soft_edges['size'];
   }
+
+  public function getAxisTextRotation() {
+    return $this->_axis_text_rotation;
+  }
+
+  public function setAxisTextRotation($rotation) {
+    $this->_axis_text_rotation = $rotation;
+  }
+
+
 }

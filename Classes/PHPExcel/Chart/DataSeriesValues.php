@@ -107,6 +107,13 @@ class PHPExcel_Chart_DataSeriesValues
         private $_dataLabelPosition = 'ctr';
         private $_dataLabelColor = '000000';
 
+        /*
+         *  indexes of the data labels to be deleted
+         *
+         * @var array
+         */
+        private $_deleteDataLabelIndexes = false;
+
         /**
 	 * Data Values
 	 *
@@ -429,5 +436,16 @@ class PHPExcel_Chart_DataSeriesValues
         {
             return $this->_dataLabelPosition;
         }
+
+        public function setDeleteDataLabels($datalabelindexes)
+        {
+            $this->_deleteDataLabelIndexes = $datalabelindexes;
+        }
+
+        public function deleteDataLabels()
+        {
+            return $this->_deleteDataLabelIndexes;
+        }
+
 
 }
