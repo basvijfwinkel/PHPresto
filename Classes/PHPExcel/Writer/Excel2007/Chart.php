@@ -620,7 +620,53 @@ class PHPExcel_Writer_Excel2007_Chart extends
    */
   private function _writeDataLbls($objWriter, $chartLayout) {
     $objWriter->startElement('c:dLbls');
+/* // moved to DataSeriesValues to enable individual line colors
+    if (!is_null($chartLayout))
+    {
+        if ($chartLayout->getDataLabelColor() != '000000')
+        {
+        $objWriter->startElement('c:txPr');
+          $objWriter->startElement('a:bodyPr');
+             $objWriter->writeAttribute('wrap',   'square');
+             $objWriter->writeAttribute('lIns',   '38100');
+             $objWriter->writeAttribute('tIns',   '19050');
+             $objWriter->writeAttribute('rIns',   '38100');
+             $objWriter->writeAttribute('bIns',   '19050');
+             $objWriter->writeAttribute('anchor', 'ctr');
+             $objWriter->startElement('a:spAutoFit');
+             $objWriter->endElement();
+          $objWriter->endElement();
+          $objWriter->startElement('a:lstStyle');
+          $objWriter->endElement();
 
+        $objWriter->startElement('a:p');
+          $objWriter->startElement('a:pPr');
+            $objWriter->startElement('a:defRPr');
+              $objWriter->startElement('a:solidFill');
+                $objWriter->startElement('a:srgbClr');
+                $objWriter->writeAttribute('val', $chartLayout->getDataLabelColor());
+                $objWriter->endElement();
+              $objWriter->endElement();
+            $objWriter->endElement();
+          $objWriter->endElement();
+          $objWriter->startElement('a:endParaRPr');
+            $objWriter->writeAttribute('lang', 'en-US');
+          $objWriter->endElement();
+        $objWriter->endElement();
+
+        $objWriter->endElement();
+
+
+        }
+        $datalabelpos = $chartLayout->getDataLabelPosition();
+        if ($datalabelpos != 'ctr')
+        {
+            $objWriter->startElement('c:dLblPos');
+            $objWriter->writeAttribute('val', $datalabelpos);
+            $objWriter->endElement();
+        }
+    }
+*/
     $objWriter->startElement('c:showLegendKey');
     $showLegendKey = (empty($chartLayout)) ? 0 : $chartLayout->getShowLegendKey();
     $objWriter->writeAttribute('val', ((empty($showLegendKey)) ? 0 : 1));

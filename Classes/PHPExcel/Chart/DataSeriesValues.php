@@ -447,5 +447,4 @@ class PHPExcel_Chart_DataSeriesValues
             return $this->_deleteDataLabelIndexes;
         }
 
-
 }
