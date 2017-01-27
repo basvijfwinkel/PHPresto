@@ -96,7 +96,10 @@ class PHPExcel_Cell
 	 */
 	private $_formulaAttributes;
 
-
+         //============= hack for unsupported formula ranges like
+	 // =SUMIF('Campaign Creatives Daily'!O:O,N8&"*",'Campaign Creatives Daily'!B:B)
+	public $_setCalculatedValueToZero = false;
+	
 	/**
 	 *	Send notification to the cache controller
 	 *
@@ -271,6 +274,9 @@ class PHPExcel_Cell
 	{
 //echo 'Cell '.$this->getCoordinate().' value is a '.$this->_dataType.' with a value of '.$this->getValue().PHP_EOL;
 		if ($this->_dataType == PHPExcel_Cell_DataType::TYPE_FORMULA) {
+		    // hack for unsupported formula ranges
+		    if ($this->_setCalculatedValueToZero) { return 0; }
+			
 			try {
 //echo 'Cell value for '.$this->getCoordinate().' is a formula: Calculating value'.PHP_EOL;
 				$result = PHPExcel_Calculation::getInstance(
