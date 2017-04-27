@@ -29,6 +29,7 @@ class PHPresto
     private $headers;          // curl query headers
     private $query;            // presto query
     private $data;             // result data (without column mapping)
+    private $error;            // error message
 
     // Presto states
     const stateUNINITIALIZED = 'UNINITIALIZED';
@@ -75,6 +76,7 @@ class PHPresto
                     'columns'          => $this->columns,
                     'headers'          => $this->headers,
                     'data'             => $this->data,
+                    'error'            => $this->error,
                     'outputformat'     => $this->outputformat,
                     'partialCancelUri' => $this->partialCancelUri];
         return $config;
@@ -112,7 +114,8 @@ class PHPresto
        $this->state            = $this->getConfigProperty($config,'state',self::stateUNINITIALIZED);
        $this->columns          = $this->getConfigProperty($config,'columns');
        $this->headers          = $this->getConfigProperty($config,'headers');
-       $this->data             = $this->getConfigProperty($config,'data' ,[]);
+       $this->data             = $this->getConfigProperty($config,'data'  ,[]);
+       $this->error            = $this->getConfigProperty($config,'error');
        $this->partialCancelUri = $this->getConfigProperty($config,'partialCancelUri',"");
        $this->outputformat     = $this->getConfigProperty($config,'outputformat',"array");
     }
@@ -197,8 +200,7 @@ class PHPresto
         }
         else
         {
-            // success posting the query
-            $this->state = self::stateRUNNING;
+            // success posted the query
             $this->GetVarFromResult($postResult);
             return [PHPrestoState::PRESTO_SUCCESS, false];
         }
@@ -286,13 +288,14 @@ class PHPresto
     	         usleep($this->sleepTime);
             }
 	      }
+
         // check if the query finished without errors
 	      if ($this->state != self::stateFINISHED)
         {
-	         return [PHPrestoState::PRESTO_ERROR,"Incoherent State at end of query"];
+	         return [PHPrestoState::PRESTO_ERROR, $this->error];
         }
         // combine headers and data
-        return $this->CombineColumnsAndData($this->data);
+        return [PHPrestoState::PRESTO_SUCCESS,$this->CombineColumnsAndData($this->data)];
     }
 
     /**
@@ -395,21 +398,39 @@ class PHPresto
     	    $status = $decodedJson->{'stats'};
     	    $this->state = $status->{'state'};
         }
+        if (isset($decodedJson->{'error'}))
+        {
+          $this->error = $decodedJson->{'error'}->{'message'} . ' ' .
+                         $decodedJson->{'error'}->{'errorCode'} . ' (' .
+                         $decodedJson->{'error'}->{'errorName'} . ' '.
+                         $decodedJson->{'error'}->{'errorType'}.')';
+        }
 	  }
 
     /**
      * Cancel the current request
      *
-     * @return [PHPrestoState, result] 
+     * @return [PHPrestoState, result]
      */
     private function Cancel()
     {
       // check if we have a uri to cancel the current request
 	    if (!isset($this->partialCancelUri))
       {
-          return [PHPrestoState::PRESTO_ERROR, "No cancel Uri has been returned by Presto yet"];
+          return [PHPrestoState::PRESTO_ERROR, "No cancel uri provided for this query"];
       }
       // try to cancel the current query
 	    return  $this->getRequest($this->partialCancelUri, $this->headers);
     }
+
+    /**
+     * Get the error message
+     *
+     * @return string
+     */
+     public function getErrorMessage()
+    {
+         return $this->error;
+    }
+
 }

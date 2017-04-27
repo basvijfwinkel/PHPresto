@@ -50,21 +50,23 @@ catch (\Exception $e)
 {
     var_dump($e);die();
 }
+
 // check if Presto returned an error
 if ($queryState != PHPrestoState::PRESTO_ERROR)
 {
     // poll the Presto server to see if it finished executing the query
     // and retrieve the result
+    list($resultState, $result) = $presto->WaitQueryExec();
     if ($resultState != PHPrestoState::PRESTO_ERROR)
     {
        // display the result;
-       echo("The result for the query");
+       echo("The result for the query : ");
        echo(var_export($result,1));
     }
     else
     {
         // some error occured while waiting for the result or parsing the data
-        echo("Something went wrong while waiting for the query");
+        echo("Something went wrong while waiting for the query : ");
         var_export($result);
     }
 }

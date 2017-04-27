@@ -68,7 +68,13 @@ if ($queryState != PHPrestoState::PRESTO_ERROR)
         $presto = new PHPresto($stateArray);
         // get the current query state
         list($prestoState, $querystate) = $presto->GetQueryState();
-        if ($prestoState == PHPrestoState::PRESTO_ERROR) { die('Error while retrieving query state:'.var_export($querystate,1)); }
+        if ($prestoState == PHPrestoState::PRESTO_ERROR)
+        {
+              // some error occured while retrieving the state
+              $prestoState = PHPRestoState::PRESTO_ERROR;
+              $result = 'Error while retrieving query state:'.var_export($querystate,1);
+              break;
+        }
         // check if the query finished
         if ($presto->QueryFinished($querystate))
         {
@@ -79,7 +85,9 @@ if ($queryState != PHPrestoState::PRESTO_ERROR)
         else if (!$presto->QueryRunning($querystate))
         {
            // the query if not finished and not running : unexpected state
-           die("Query is in unexpected state : ".$querystate);
+           $prestoState = PHPRestoState::PRESTO_ERROR;
+           $result = "The query did not finish as expected : ".$presto->getErrorMessage();
+           break;
         }
 
         // if we end up here, the query is still running
@@ -90,20 +98,20 @@ if ($queryState != PHPrestoState::PRESTO_ERROR)
         // wait for a second before polling again
         sleep(1);
         $times--;
-        if ($times == 0) { $prestoState = true; $result = "Timeout in async version, script not finished yet"; }
+        if ($times == 0) { $prestoState = PHPRestoState::PRESTO_ERROR; $result = "Timeout in async version, script not finished yet"; }
     }
 
     // show the result if we didn't end up with an error
     if ($prestoState != PHPRestoState::PRESTO_ERROR)
     {
        // display the result
-       echo("The result for the query");
+       echo("The result for the query : ");
        echo(var_export($result,1));
     }
     else
     {
         // something went wrong while waiting for the query
-        echo("Something went wrong while waiting for the query.");
+        echo("Something went wrong while waiting for the query : ");
         var_export($result);
     }
 }
