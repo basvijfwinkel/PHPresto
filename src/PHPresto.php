@@ -1,5 +1,5 @@
 <?php
-namespace Presto;
+namespace PHPPresto;
 
 class PHPrestoState
 {
