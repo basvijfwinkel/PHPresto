@@ -295,7 +295,7 @@ class PHPresto
 	         return [PHPrestoState::PRESTO_ERROR, $this->error];
         }
         // combine headers and data
-        return [PHPrestoState::PRESTO_SUCCESS,$this->CombineColumnsAndData($this->data)];
+        return $this->CombineColumnsAndData($this->data);
     }
 
     /**
