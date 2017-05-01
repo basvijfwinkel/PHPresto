@@ -7,9 +7,9 @@
     "authors": [
         {
             "name": "Bas Vijfwinkel"
-        },
+        }
     ],
     "require": {
         "php": ">=5.2.0",
-    },
+    }
 }
