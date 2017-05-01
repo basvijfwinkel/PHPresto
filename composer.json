@@ -1,9 +1,9 @@
 {
-    "name": "basvijfwinkel/PHPresto",
+    "name": "basvijfwinkel/phpresto",
     "description": "PHPresto - An PHP client for using the Presto HTTP API",
     "keywords": ["PHP","Presto","Presto HTTP API"],
     "type": "library",
-    "license": "Apache",
+    "license": "Apache2",
     "authors": [
         {
             "name": "Bas Vijfwinkel"
