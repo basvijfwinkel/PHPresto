@@ -10,11 +10,14 @@
         }
     ],
     "require": {
-        "php": ">=5.2.0"
-    },
+                   "php": ">=5.2.0"
+               },
     "require-dev": {
-        "php": ">=5.2.0"
-    },
+                       "php": ">=5.2.0"
+                   },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "autoload": {
+                   "psr-4": {"PHPresto\\": "src/"}
+                }
 }
