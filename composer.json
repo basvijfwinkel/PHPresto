@@ -1,0 +1,15 @@
+{
+    "name": "PHPresto",
+    "description": "PHPresto - An PHP client for using the Presto HTTP API",
+    "keywords": ["PHP","Excel","OpenXML","xlsx","xls","spreadsheet"],
+    "type": "library",
+    "license": "Apache",
+    "authors": [
+        {
+            "name": "Bas Vijfwinkel"
+        },
+    ],
+    "require": {
+        "php": ">=5.2.0",
+    },
+}
