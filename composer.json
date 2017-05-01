@@ -1,5 +1,5 @@
 {
-    "name": "basvijfwinkel/phpresto",
+    "name": "phpresto/phpresto",
     "description": "PHPresto - An PHP client for using the Presto HTTP API",
     "keywords": ["PHP","Presto","Presto HTTP API"],
     "type": "library",
