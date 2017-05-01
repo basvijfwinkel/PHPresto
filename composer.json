@@ -1,7 +1,7 @@
 {
-    "name": "PHPresto",
+    "name": "basvijfwinkel/PHPresto",
     "description": "PHPresto - An PHP client for using the Presto HTTP API",
-    "keywords": ["PHP","Excel","OpenXML","xlsx","xls","spreadsheet"],
+    "keywords": ["PHP","Presto","Presto HTTP API"],
     "type": "library",
     "license": "Apache",
     "authors": [
@@ -10,6 +10,9 @@
         }
     ],
     "require": {
+        "php": ">=5.2.0"
+    },
+    "require-dev": {
         "php": ">=5.2.0"
     }
 }
