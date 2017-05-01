@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-use \Presto\PHPrestoState;
-use \Presto\PHPresto;
+use \PHPresto\PHPrestoState;
+use \PHPresto\PHPresto;
 
 require_once(__DIR__ . '/../src/PHPresto.php');
 
