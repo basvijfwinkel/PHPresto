@@ -30,6 +30,7 @@ if (!$config)
                 'catalog' => 'hive',
                 'user'    => 'my_user_name',
                 'schema'  => 'default',
+                //'timezone' => 'Asia/Tokyo', //https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
                 //'outputformat' => 'table'
               ];
 }

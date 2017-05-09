@@ -27,10 +27,11 @@ if (file_exists('presto.ini'))
 if (!$config)
 {
     // no presto.ini file or loading the file failed
-    $config = [ 'url'     => 'http://my.presto.server.domain.com:8889/v1/statement',
-                'catalog' => 'hive',
-                'user'    => 'my_user_name',
-                'schema'  => 'default',
+    $config = [ 'url'      => 'http://my.presto.server.domain.com:8889/v1/statement',
+                'catalog'  => 'hive',
+                'user'     => 'my_user_name',
+                'schema'   => 'default',
+                //'timezone' => 'Asia/Tokyo', // https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
                 //'outputformat' => 'table'
               ];
 }

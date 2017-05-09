@@ -19,6 +19,8 @@ class PHPresto
     private $maxTries;   // maximum number of retries
     private $currentTry; // current times tried
     private $outputformat; // array or table (first row contains headers)
+    private $timezone;     // timezone to send to Presto ; if empty, no timezone will be send along the query
+                          // valid timezone strings can be found here : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
     // properties that are set by the client
     private $nextUri;          // next query url`
@@ -78,7 +80,8 @@ class PHPresto
                     'data'             => $this->data,
                     'error'            => $this->error,
                     'outputformat'     => $this->outputformat,
-                    'partialCancelUri' => $this->partialCancelUri];
+                    'partialCancelUri' => $this->partialCancelUri,
+                    'timezone'         => $this->timezone];
         return $config;
     }
 
@@ -118,6 +121,7 @@ class PHPresto
        $this->error            = $this->getConfigProperty($config,'error');
        $this->partialCancelUri = $this->getConfigProperty($config,'partialCancelUri',"");
        $this->outputformat     = $this->getConfigProperty($config,'outputformat',"array");
+       $this->timezone         = $this->getConfigProperty($config,'timezone',"");
     }
 
     /**
@@ -191,6 +195,8 @@ class PHPresto
 	                         "X-Presto-Schema: ". $this->schema,
 	                         //"User-Agent: ".      $this->userAgent
                          ];
+        // add timezone if set
+        if (strlen($this->timezone) > 0) { $this->headers[] = "X-Presto-Time-Zone: ".$this->timezone; }
 
         list($postState,$postResult) = $this->postRequest($this->url,$this->headers,$this->query);
         if ($postState == PHPrestoState::PRESTO_ERROR)
@@ -218,6 +224,7 @@ class PHPresto
     */
     private function postRequest($url, $headers, $postdata)
     {
+
 	      $connect = \curl_init();
 	      \curl_setopt($connect,CURLOPT_URL, $url);
 	      \curl_setopt($connect,CURLOPT_HTTPHEADER, $headers);
@@ -295,7 +302,7 @@ class PHPresto
 	         return [PHPrestoState::PRESTO_ERROR, $this->error];
         }
         // combine headers and data
-        return [PHPrestoState::PRESTO_SUCCESS,$this->CombineColumnsAndData($this->data)];
+        return $this->CombineColumnsAndData($this->data);
     }
 
     /**
