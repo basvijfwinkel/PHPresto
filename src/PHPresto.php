@@ -206,9 +206,21 @@ class PHPresto
         }
         else
         {
-            // success posted the query
+            // success posting the query
+            // get the data from the result message
             $this->GetVarFromResult($postResult);
-            return [PHPrestoState::PRESTO_SUCCESS, false];
+            
+            // we might still have an error regarding the query
+	    if (is_null($this->error))                             
+            {                                                  
+		// no error
+                return [PHPrestoState::PRESTO_SUCCESS, false];
+            }
+            else
+            {
+		// some error message was returned.
+                return [PHPrestoState::PRESTO_ERROR, $this->error];
+            }
         }
     }
 
