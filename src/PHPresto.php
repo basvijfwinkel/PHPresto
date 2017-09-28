@@ -409,10 +409,9 @@ class PHPresto
         {
           $this->error = $decodedJson->{'error'}->{'message'} . ' ' .
                          $decodedJson->{'error'}->{'errorCode'} . ' (' .
-                         $decodedJson->{'error'}->{'errorName'} . ' '.
-                         $decodedJson->{'error'}->{'errorType'}.')';
+                         $decodedJson->{'error'}->{'errorName'} .')';
         }
-	  }
+    }
 
     /**
      * Cancel the current request
