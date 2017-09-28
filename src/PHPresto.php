@@ -189,7 +189,7 @@ class PHPresto
 	          return [PHPrestoState::PRESTO_ERROR, "Another query is already running"];
 	      }
 
-	      $this->headers = [
+	      $this->headers = [ "Content-Type: text/xml", // some Presto setups won't work without this
 	                         "X-Presto-User: ".   $this->user,
 	                         "X-Presto-Catalog: ".$this->catalog,
 	                         "X-Presto-Schema: ". $this->schema,
