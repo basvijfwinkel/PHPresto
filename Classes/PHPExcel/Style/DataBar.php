@@ -5,7 +5,32 @@ TODO :
 - check : if priority of 2 databars work correctly
 - consider : preserve CLASSID?
 
+/*<code>
+       $conditional = new PHPExcel_Style_Conditional();
+       $conditionType = PHPExcel_Style_Conditional::CONDITION_DATABAR;
+       $settingsArray =  array(
+                          'cellReference' => 'A1:A5',
+                          'color' => ['rgb' => '557DBC'],
+                          //'fillColor' => ['rgb' =>'00FF00'],
+                          //'border' => true,
+                          //'borderColor' => ['rgb' =>'5279BA'],
+                          //'negativeBarColorSameAsPositive' => 0,
+                          //'negativeFillColor' => ['rgb' =>'FF0000'],
+                          //'negativeBarBorderColorSameAsPositive' => 0,
+                          //'negativeBorderColor' => ['rgb' =>'FF00FF'],
+                          //'axisColor' => ['rgb' =>'7F7F7F'],
+                          //'minLength' => 20,
+                          //'maxLength' => 70,
+                          //'showValue' => true,
+                          //'direction' => 'context',
+                          //'axisPosition' => 'middle',
+                          //'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
+                      );
+       $conditional->setConditionObjectFromArray($conditionType, $settingsArray);
+       $phpExcelObj->getActiveSheet->getStyle('A1')->addConditionalStyle($conditional);
+</code>
 */
+
 /**
  * PHPExcel
  *
@@ -220,30 +245,6 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_GroupedConditional implement
 	/**
 	 * Apply styles from array
 	 *
-	 * <code>
-	 * $pValue = new PHPExcel_Style_DataBar();
-	 *	$pValue->applyFromArray(
-	 *		array(
-	 *			'cellReference' => 'A1:A5',
-	 *			'color' => '00FF00',
-	 *          'fillColor' => '00FF00',
-	 *          'border' => 1,
-	 *			'borderColor' => 'FFFF00',
-	 *			'negativeBarColorSameAsPositive' => 0,
-	 *			'negativeFillColor' => 'FF0000',
-	 *			'negativeBarBorderColorSameAsPositive' => 0,
-	 *			'negativeBorderColor' => 'FF00FF',
-	 *			'axisColor' => '7F7F7F',
-	 *			'minLength' => 20,
-	 *          'maxLength' => 70,
-	 *			//'showValue' => 0,
-	 *			'direction' => 'context',
-	 *          'axisPosition' => 'middle',
-	 *          'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
-	 *			), true);
-	 * $objPHPExcel->getActiveSheet()->setConditionalStyles('A3',$pValue)
-	 * </code>
-	 *
 	 * @param	array	$pStyles	Array containing style information
 	 * @param   boolean	$checkInput	set to true if the validity of the data must be checked (Excel2010 does not seem to follow the specifications...)
 	 * @param	boolean	$isExtLstData	set to true if the data is from an extlst block (cfvo data will be stored separately)
@@ -254,7 +255,7 @@ class PHPExcel_Style_DataBar extends PHPExcel_Style_GroupedConditional implement
 		if (is_array($pStyles)) 
 		{
 			if (array_key_exists('cellReference', $pStyles))       { $this->setCellReference($pStyles['cellReference']); }
-			if (array_key_exists('color', $pStyles))               { $color = new PHPExcel_Style_Color(); $this->setColor($color->applyFromArray($pStyles['color'])); }
+			if (array_key_exists('color', $pStyles))               { $this->setColor(new PHPExcel_Style_Color($pStyles['color']['rgb'])); }
 			if (array_key_exists('fillColor', $pStyles))           { $this->setFillColor(new PHPExcel_Style_Color($pStyles['fillColor']['rgb'])); }	
 			if (array_key_exists('borderColor', $pStyles))         { $this->setBorderColor(new PHPExcel_Style_Color($pStyles['borderColor']['rgb'])); }
 			if (array_key_exists('negativeFillColor', $pStyles))   { $this->setNegativeFillColor(new PHPExcel_Style_Color($pStyles['negativeFillColor']['rgb'])); }
