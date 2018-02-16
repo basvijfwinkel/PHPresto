@@ -7,27 +7,35 @@ TODO :
 
 /*<code>
        $conditional = new PHPExcel_Style_Conditional();
+       $conditional->setPriority(0);
        $conditionType = PHPExcel_Style_Conditional::CONDITION_DATABAR;
        $settingsArray =  array(
                           'cellReference' => 'A1:A5',
-                          'color' => ['rgb' => '557DBC'],
-                          //'fillColor' => ['rgb' =>'00FF00'],
-                          //'border' => true,
-                          //'borderColor' => ['rgb' =>'5279BA'],
+                          'color' => ['rgb' => 'FF557DBC'],
+                          //'fillColor' => ['rgb' =>'FF00FF00'],
+                          'border' => true,
+                          'borderColor' => ['rgb' =>'FF5279BA'],
+                          'negativeFillColor' => ['auto' => '1'],
+                          'axisColor' => ['auto' => '1'],
+                          'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
+                          'showValue' => true,
                           //'negativeBarColorSameAsPositive' => 0,
-                          //'negativeFillColor' => ['rgb' =>'FF0000'],
+                          //'negativeFillColor' => ['rgb' =>'FFFF0000'],
                           //'negativeBarBorderColorSameAsPositive' => 0,
-                          //'negativeBorderColor' => ['rgb' =>'FF00FF'],
-                          //'axisColor' => ['rgb' =>'7F7F7F'],
+                          //'negativeBorderColor' => ['rgb' =>'FFFF00FF'],
+                          //'axisColor' => ['rgb' =>'FF7F7F7F'],
                           //'minLength' => 20,
                           //'maxLength' => 70,
-                          //'showValue' => true,
+
                           //'direction' => 'context',
                           //'axisPosition' => 'middle',
-                          //'cfvos' => array(array('type'=>'min'),array('type'=>'max'))
+
                       );
        $conditional->setConditionObjectFromArray($conditionType, $settingsArray);
        $phpExcelObj->getActiveSheet->getStyle('A1')->addConditionalStyle($conditional);
+</code>
+<code>
+
 </code>
 */
 
