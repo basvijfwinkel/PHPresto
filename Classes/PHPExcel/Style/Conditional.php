@@ -494,7 +494,14 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
      * @return string    Hash code
      */
     public function getHashCode() {
-        return md5(
+        $conditionobjecthash = "";
+         if (($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_DATABAR) ||
+             ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_COLORSCALE) ||
+             ($this->_conditionType == PHPExcel_Style_Conditional::CONDITION_ICONSET))
+        {
+            $conditionobjecthash = $this->_conditionObject->getHashCode();
+        }
+        $hash = md5(
               $this->_conditionType
             . $this->_priority
             . $this->_operatorType
@@ -505,8 +512,10 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
             . $this->_bottom
             . implode(';', $this->_condition)
             . $this->_style->getHashCode()
+            . $conditionobjecthash
             . __CLASS__
         );
+        return strtoupper($hash);
     }
 
     /**

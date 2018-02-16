@@ -1,4 +1,4 @@
-<?PHP
+<?php
 
 class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
 {
@@ -15,7 +15,7 @@ class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
 		// set these cfvo values by default because without them no IconSet is shown
 		$this->_cfvos = array(PHPExcel_Style_CFVOType::fromString('min'),PHPExcel_Style_CFVOType::fromString('max'));
 		// uniq id
-		$this->_id = uniqid('',true);
+		$this->_id = md5(uniqid('',true));
 	}
 	
 	
@@ -136,6 +136,35 @@ class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
 		return $result;
     }
 
-	
+    /*
+     * Get the hashcode for this object
+     *
+     * <code>
+     * $worksheetstyles = $objPHPExcel->getActiveSheet()->getConditionalStyles();
+     * $hashcode = $worksheetstyles[0]->getHashCode();.
+     * </code>
+     *
+     * @return string containing md5 hashcode of the object
+    */
+    public function getHashCode()
+    {
+        return $this->_id;
+    }
+
+        /*
+         * Get a unique classID for this object
+         *
+         * @return<---->string<>CLASSID v3 string : e.g. {1546058F-5A25-4334-85AE-E68F2A44BBAF}
+         *
+         */
+         public function getClassID()
+         {
+            $hash = $this->getHashCode();
+            return strtoupper(sprintf('{%08s-%04s-%04x-%04x-%12s}',
+                                      substr($hash, 0, 8),
+                                      substr($hash, 8, 4),
+                                      (hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x3000,
+                                      (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
+                                       substr($hash, 20, 12)));
+        }
 }
-?>
