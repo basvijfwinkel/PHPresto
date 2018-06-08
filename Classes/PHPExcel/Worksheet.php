@@ -1569,7 +1569,14 @@ class PHPExcel_Worksheet implements PHPExcel_IComparable
             return $this->getStyle($cellRange);
         }
 
-        return $this->getStyle(PHPExcel_Cell::stringFromColumnIndex($pColumn) . $pRow);
+        if (!is_numeric($pColumn))
+        {
+            return $this->getStyle($pColumn . $pRow);
+        }
+        else
+        {
+            return $this->getStyle(PHPExcel_Cell::stringFromColumnIndex($pColumn) . $pRow);
+        }
     }
 
     /**
