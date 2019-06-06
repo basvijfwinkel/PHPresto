@@ -10,17 +10,19 @@ class PHPrestoState
 class PHPresto
 {
     // variables that can be set by the user
-    private $user;       // e.g. 'myuser'
-    private $schema;     // e.g. 'default'
-    private $catalog;    // e.g 'hive'
-    private $userAgent;  // can be empty
-    private $url;        // url to connect to e.g http://ec2-123-456-789-012.ap-northeast-1.compute.amazonaws.com:8889/v1/statement
-    private $sleepTime;  // number of milisconds to wait before checking the query state. e.g. 500000
-    private $maxTries;   // maximum number of retries
-    private $currentTry; // current times tried
-    private $outputformat; // array or table (first row contains headers)
+    private $user;         // e.g. 'myuser'
+    private $schema;       // e.g. 'default'
+    private $catalog;      // e.g 'hive'
+    private $userAgent;    // can be empty
+    private $url;          // url to connect to e.g http://ec2-123-456-789-012.ap-northeast-1.compute.amazonaws.com:8889/v1/statement
+    private $sleepTime;    // number of milisconds to wait before checking the query state. e.g. 500000
+    private $maxTries;     // maximum number of retries
+    private $currentTry;   // current times tried
+    private $outputformat; // array or table (first row contains headers) or file (set output location to $storageFile)
     private $timezone;     // timezone to send to Presto ; if empty, no timezone will be send along the query
-                          // valid timezone strings can be found here : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+                           // valid timezone strings can be found here : https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    private $storageFile;  // storage location 
+    private $seperator;    // seperator for the fields in the storage file
 
     // properties that are set by the client
     private $nextUri;          // next query url`
@@ -32,6 +34,7 @@ class PHPresto
     private $query;            // presto query
     private $data;             // result data (without column mapping)
     private $error;            // error message
+    private $lineswriten;      // number of lines written to the file
 
     // Presto states
     const stateUNINITIALIZED = 'UNINITIALIZED';
@@ -81,7 +84,11 @@ class PHPresto
                     'error'            => $this->error,
                     'outputformat'     => $this->outputformat,
                     'partialCancelUri' => $this->partialCancelUri,
-                    'timezone'         => $this->timezone];
+                    'timezone'         => $this->timezone,
+                    'storageFile'      => $this->storageFile,
+                    'seperator'        => $this->seperator,
+                    'lineswritten'     => $this->lineswritten,
+                  ];
         return $config;
     }
 
@@ -104,45 +111,49 @@ class PHPresto
     */
     public function setFromState($config)
     {
-       $this->url              = $this->getConfigProperty($config,'url');
-       $this->catalog          = $this->getConfigProperty($config,'catalog');
-       $this->user             = $this->getConfigProperty($config,'user');
-       $this->schema           = $this->getConfigProperty($config,'schema');
-       $this->sleepTime        = $this->getConfigProperty($config,'sleepTime',500000);
-       $this->maxTries         = $this->getConfigProperty($config,'maxTries',260);
-       $this->currentTry       = $this->getConfigProperty($config,'currentTry',0);
-       $this->userAgent        = $this->getConfigProperty($config,'userAgent');
-       $this->query            = $this->getConfigProperty($config,'query',"");
-       $this->nextUri          = $this->getConfigProperty($config,'nextUri',"");
-       $this->state            = $this->getConfigProperty($config,'state',self::stateUNINITIALIZED);
-       $this->columns          = $this->getConfigProperty($config,'columns');
-       $this->headers          = $this->getConfigProperty($config,'headers');
-       $this->data             = $this->getConfigProperty($config,'data'  ,[]);
-       $this->error            = $this->getConfigProperty($config,'error');
-       $this->partialCancelUri = $this->getConfigProperty($config,'partialCancelUri',"");
-       $this->outputformat     = $this->getConfigProperty($config,'outputformat',"array");
-       $this->timezone         = $this->getConfigProperty($config,'timezone',"");
+        $this->url              = $this->getConfigProperty($config,'url');
+        $this->catalog          = $this->getConfigProperty($config,'catalog');
+        $this->user             = $this->getConfigProperty($config,'user');
+        $this->schema           = $this->getConfigProperty($config,'schema');
+        $this->sleepTime        = $this->getConfigProperty($config,'sleepTime',500000);
+        $this->maxTries         = $this->getConfigProperty($config,'maxTries',260);
+        $this->currentTry       = $this->getConfigProperty($config,'currentTry',0);
+        $this->userAgent        = $this->getConfigProperty($config,'userAgent');
+        $this->query            = $this->getConfigProperty($config,'query',"");
+        $this->nextUri          = $this->getConfigProperty($config,'nextUri',"");
+        $this->state            = $this->getConfigProperty($config,'state',self::stateUNINITIALIZED);
+        $this->columns          = $this->getConfigProperty($config,'columns');
+        $this->headers          = $this->getConfigProperty($config,'headers');
+        $this->data             = $this->getConfigProperty($config,'data'  ,[]);
+        $this->error            = $this->getConfigProperty($config,'error');
+        $this->partialCancelUri = $this->getConfigProperty($config,'partialCancelUri',"");
+        $this->outputformat     = $this->getConfigProperty($config,'outputformat',"array");
+        $this->timezone         = $this->getConfigProperty($config,'timezone',"");
+        $this->storageFile      = $this->getConfigProperty($config,'storageFile',false);
+        $this->seperator        = $this->getConfigProperty($config,'seperator',',');
+        $this->lineswritten     = $this->getConfigProperty($config,'lineswritten',0);
     }
 
     /**
      * Return the result data for the query
      * If the 'outputformat' property is set to 'array', an array will be returned.
      * If the 'outputformat' property is set to 'table', an table with a header will be returned
+     * If the 'outputformat' property is set to 'file', the data will be written to a file
      *
      * @return [PHPrestoState, array]
      */
     public function CombineColumnsAndData()
     {
-	      if ($this->state != self::stateFINISHED)
+        $result = [];
+        if ($this->state != self::stateFINISHED)
         {
-	          return [PHPrestoState::PRESTO_ERROR, "Query has not finished yet. Current state : ".$this->state];
-	      }
+             return [PHPrestoState::PRESTO_ERROR, "Query has not finished yet. Current state : ".$this->state];
+        }
         if ($this->outputformat == 'array')
         {
             // add the results as an array
 
             // add colums to result Data
-            $result = [];
             foreach($this->data as $entryindex => $entry)
             {
                 foreach($entry as $fieldindex => $fielddata)
@@ -158,10 +169,13 @@ class PHPresto
                 }
             }
         }
-        else
+        else if ($this->outputformat == 'file')
+        {
+            // we write data when we receive it.
+        }
+        else 
         {
             // add the results as a table
-            $result = [];
             // add headers
             foreach ($this->columns as $column) { $result[0][] = $column->name; }
             // add data
@@ -183,17 +197,17 @@ class PHPresto
         $this->data = [];
         $this->columns = [];
 
-	      //check that no other queries are already running for this object
-	      if ($this->state === self::stateRUNNING)
+        //check that no other queries are already running for this object
+        if ($this->state === self::stateRUNNING)
         {
-	          return [PHPrestoState::PRESTO_ERROR, "Another query is already running"];
-	      }
+            return [PHPrestoState::PRESTO_ERROR, "Another query is already running"];
+        }
 
-	      $this->headers = [ "Content-Type: text/xml", // some Presto setups won't work without this
-	                         "X-Presto-User: ".   $this->user,
-	                         "X-Presto-Catalog: ".$this->catalog,
-	                         "X-Presto-Schema: ". $this->schema,
-	                         //"User-Agent: ".      $this->userAgent
+        $this->headers = [ "Content-Type: text/xml", // some Presto setups won't work without this
+                           "X-Presto-User: ".   $this->user,
+                           "X-Presto-Catalog: ".$this->catalog,
+                           "X-Presto-Schema: ". $this->schema,
+                           // "User-Agent: ".   $this->userAgent
                          ];
         // add timezone if set
         if (strlen($this->timezone) > 0) { $this->headers[] = "X-Presto-Time-Zone: ".$this->timezone; }
@@ -209,16 +223,16 @@ class PHPresto
             // success posting the query
             // get the data from the result message
             $this->GetVarFromResult($postResult);
-            
+
             // we might still have an error regarding the query
-	    if (is_null($this->error))                             
-            {                                                  
-		// no error
+            if (is_null($this->error))
+            {
+                // no error
                 return [PHPrestoState::PRESTO_SUCCESS, false];
             }
             else
             {
-		// some error message was returned.
+                // some error message was returned.
                 return [PHPrestoState::PRESTO_ERROR, $this->error];
             }
         }
@@ -236,15 +250,14 @@ class PHPresto
     */
     private function postRequest($url, $headers, $postdata)
     {
-
-	      $connect = \curl_init();
-	      \curl_setopt($connect,CURLOPT_URL, $url);
-	      \curl_setopt($connect,CURLOPT_HTTPHEADER, $headers);
-	      \curl_setopt($connect,CURLOPT_RETURNTRANSFER, 1);
-	      \curl_setopt($connect,CURLOPT_POST, 1);
-	      \curl_setopt($connect,CURLOPT_POSTFIELDS, $postdata);
-	      $result = \curl_exec($connect);
-	      $httpCode = \curl_getinfo($connect, CURLINFO_HTTP_CODE);
+        $connect = \curl_init();
+        \curl_setopt($connect,CURLOPT_URL, $url);
+        \curl_setopt($connect,CURLOPT_HTTPHEADER, $headers);
+        \curl_setopt($connect,CURLOPT_RETURNTRANSFER, 1);
+        \curl_setopt($connect,CURLOPT_POST, 1);
+        \curl_setopt($connect,CURLOPT_POSTFIELDS, $postdata);
+        $result = \curl_exec($connect);
+        $httpCode = \curl_getinfo($connect, CURLINFO_HTTP_CODE);
         if($httpCode != "200")
         {
             // some error occured
@@ -266,22 +279,22 @@ class PHPresto
     */
     private function getRequest($url, $headers)
     {
-  	      $connect = \curl_init();
-  	      \curl_setopt($connect,CURLOPT_URL, $url);
-  	      \curl_setopt($connect,CURLOPT_HTTPHEADER, $headers);
-  	      \curl_setopt($connect,CURLOPT_RETURNTRANSFER, 1);
+        $connect = \curl_init();
+        \curl_setopt($connect,CURLOPT_URL, $url);
+        \curl_setopt($connect,CURLOPT_HTTPHEADER, $headers);
+        \curl_setopt($connect,CURLOPT_RETURNTRANSFER, 1);
 
-  	      $result = \curl_exec($connect);
-  	      $httpCode = \curl_getinfo($connect, CURLINFO_HTTP_CODE);
-          if(($httpCode != "200") && ($httpCode != "204"))
-          {
-              return [PHPrestoState::PRESTO_ERROR, 'HTTP ERRROR: '. $httpCode];
-          }
-          else
-          {
-              curl_close($connect);
-              return [PHPrestoState::PRESTO_SUCCESS, $result];
-          }
+        $result = \curl_exec($connect);
+        $httpCode = \curl_getinfo($connect, CURLINFO_HTTP_CODE);
+        if(($httpCode != "200") && ($httpCode != "204"))
+        {
+            return [PHPrestoState::PRESTO_ERROR, 'HTTP ERRROR: '. $httpCode];
+        }
+        else
+        {
+            curl_close($connect);
+            return [PHPrestoState::PRESTO_SUCCESS, $result];
+        }
     }
 
     /**
@@ -291,10 +304,13 @@ class PHPresto
      */
     public function WaitQueryExec()
     {
-	      while ($this->nextUri)
+      while ($this->nextUri)
         {
            list($getState, $result) = $this->getRequest($this->nextUri, $this->headers);
-           if ($getState == PHPrestoState::PRESTO_ERROR) { return [PHPrestoState::PRESTO_ERROR, 'Something went wrong while polling for the results :'.var_export($result,1)]; }
+           if ($getState == PHPrestoState::PRESTO_ERROR)
+           {
+               return [PHPrestoState::PRESTO_ERROR, 'Something went wrong while polling for the results :'.var_export($result,1)]; 
+           }
 
            $this->GetVarFromResult($result);
            if(!$this->nextUri)
@@ -304,14 +320,14 @@ class PHPresto
                {
                    return [PHPrestoState::PRESTO_ERROR,"Time out waiting for result : waited ".(($this->sleepTime * $this->maxTries)/1000)." seconds."];
                }
-    	         usleep($this->sleepTime);
+               usleep($this->sleepTime);
             }
-	      }
+        }
 
         // check if the query finished without errors
-	      if ($this->state != self::stateFINISHED)
+        if ($this->state != self::stateFINISHED)
         {
-	         return [PHPrestoState::PRESTO_ERROR, $this->error];
+            return [PHPrestoState::PRESTO_ERROR, $this->error];
         }
         // combine headers and data
         return $this->CombineColumnsAndData($this->data);
@@ -389,7 +405,7 @@ class PHPresto
     */
     private function GetVarFromResult($result)
     {
-	      /* Retrieve the variables from the JSON answer */
+        /* Retrieve the variables from the JSON answer */
         $decodedJson = json_decode($result);
 
         if (isset($decodedJson->{'nextUri'}))
@@ -398,7 +414,18 @@ class PHPresto
         }
         if (isset($decodedJson->{'data'}))
         {
-           $this->data = array_merge($this->data,$decodedJson->{'data'});
+            if ($this->outputformat == 'file')
+            {
+                foreach($decodedJson->{'data'} as $entry)
+                {
+                    file_put_contents($this->storageFile, implode($this->seperator,$entry)."\n", FILE_APPEND);
+                    $this->lineswritten++;
+                }
+            }
+            else
+            {
+                $this->data = array_merge($this->data,$decodedJson->{'data'});
+            }
         }
         if (isset($decodedJson->{'infoUri'}))
         {
@@ -411,17 +438,22 @@ class PHPresto
         if (isset($decodedJson->{'columns'}))
         {
             $this->columns = $decodedJson->{'columns'};
+            if (($this->outputformat == 'file') && ($this->lineswritten == 0))
+            {
+                // write the columns as header to the outputfile
+                file_put_contents($this->storageFile, implode($this->seperator,array_column($this->columns,'name'))."\n");
+            }
         }
         if (isset($decodedJson->{'stats'}))
         {
-    	    $status = $decodedJson->{'stats'};
-    	    $this->state = $status->{'state'};
+            $status = $decodedJson->{'stats'};
+            $this->state = $status->{'state'};
         }
         if (isset($decodedJson->{'error'}))
         {
-          $this->error = $decodedJson->{'error'}->{'message'} . ' ' .
-                         $decodedJson->{'error'}->{'errorCode'} . ' (' .
-                         $decodedJson->{'error'}->{'errorName'} .')';
+            $this->error = $decodedJson->{'error'}->{'message'} . ' ' .
+                           $decodedJson->{'error'}->{'errorCode'} . ' (' .
+                           $decodedJson->{'error'}->{'errorName'} .')';
         }
     }
 
@@ -432,13 +464,13 @@ class PHPresto
      */
     private function Cancel()
     {
-      // check if we have a uri to cancel the current request
-	    if (!isset($this->partialCancelUri))
-      {
-          return [PHPrestoState::PRESTO_ERROR, "No cancel uri provided for this query"];
-      }
-      // try to cancel the current query
-	    return  $this->getRequest($this->partialCancelUri, $this->headers);
+        // check if we have a uri to cancel the current request
+        if (!isset($this->partialCancelUri))
+        {
+            return [PHPrestoState::PRESTO_ERROR, "No cancel uri provided for this query"];
+        }
+        // try to cancel the current query
+        return  $this->getRequest($this->partialCancelUri, $this->headers);
     }
 
     /**
