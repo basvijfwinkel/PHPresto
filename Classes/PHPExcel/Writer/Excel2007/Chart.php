@@ -115,7 +115,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
             $pChart->getMajorGridlines(),
             $pChart->getMinorGridlines(),
             $pChart->getSecondaryYAxis(),
-            $pChart->getSecondaryXAxis()
+            $pChart->getSecondaryXAxis(),
+            $pChart->getSecondaryYAxisLabel()
         );
     }
 
@@ -408,7 +409,7 @@ class PHPExcel_Writer_Excel2007_Chart extends
 
     if (($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_PIECHART_3D) && ($chartType !== PHPExcel_Chart_DataSeries::TYPE_DONUTCHART)) 
 	{
-		// first write out the primary axis
+		// write out the primary axis
 		if ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
 		{
 			$this->_writeValAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id1, $id2, $catIsMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines);
@@ -447,7 +448,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
       PHPExcel_Chart_GridLines $majorGridlines,
       PHPExcel_Chart_GridLines $minorGridlines,
       PHPExcel_Chart_Axis $secondaryYAxis = NULL,
-      PHPExcel_Chart_Axis $secondaryXAxis = NULL
+      PHPExcel_Chart_Axis $secondaryXAxis = NULL,
+      PHPExcel_Chart_Title $secondaryYAxisLabel = NULL
   ) 
   {
     if (is_null($plotArea)) {   return;  }
@@ -591,9 +593,9 @@ class PHPExcel_Writer_Excel2007_Chart extends
             {
                      $this->_writeCatAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id1, $id2, $catIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis,true);
             }
-            $this->_writeValAx($objWriter, $plotArea, $yAxisLabel, $chartType, $id1, $id2, $valIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
+            $this->_writeValAx($objWriter, $plotArea, $secondaryYAxisLabel, $chartType, $id1, $id2, $valIsMultiLevelSeries, $secondaryXAxis, $secondaryYAxis, $majorGridlines, $minorGridlines, true);
 
-            // first write out the primary axis
+            // write out the primary axis
             if ($chartType === PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) 
             {
                   $this->_writeValAx($objWriter, $plotArea, $xAxisLabel, $chartType, $id3, $id4, $catIsMultiLevelSeries, $xAxis, $yAxis, $majorGridlines, $minorGridlines);
