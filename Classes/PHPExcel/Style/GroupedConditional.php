@@ -113,6 +113,7 @@ class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
     public function getCellReference() 
 	{
 		$minColumn = null; $maxColumn = null; $minRow = null; $maxRow = null;
+                $cellRefsByRow = [];
 		foreach($this->_cellReference as $cellRef)
 		{
 			list($columnChar, $row) = PHPExcel_Cell::coordinateFromString($cellRef);
@@ -121,6 +122,8 @@ class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
 			$maxColumn = (($maxColumn == null)||($column > $maxColumn))?$column:$maxColumn;
 			$minRow = (($minRow == null)||($row < $minRow))?$row:$minRow;
 			$maxRow = (($maxRow == null)||($row > $maxRow))?$row:$maxRow;
+                        if(!isset($cellRefsByRow[$row])) { $cellRefsByRow[$row] = []; }
+                        $cellRefsByRow[$row][] = $column;
 		}
 		
 		if (($minRow == $maxRow) && ($minColumn == $maxColumn))
@@ -128,14 +131,24 @@ class PHPExcel_Style_GroupedConditional extends PHPExcel_Style_Supervisor
 			// single reference
 			$result = PHPExcel_Cell::stringFromColumnIndex($minColumn-1).$minRow;
 		}
-		else
+		else //if (count($this->_cellReference) == (($maxColumn - $minColumn + 1) * ($maxRow - $minRow + 1)))
 		{
-			// range
+			// range as 1 single block
 			$result = PHPExcel_Cell::stringFromColumnIndex($minColumn-1).$minRow.':'.PHPExcel_Cell::stringFromColumnIndex($maxColumn-1).$maxRow;
 		}
+/*                else
+                {
+                        // various cells and blocks -> optimize blocks
+                        $result = $this->getOptimizedReferences($cellRefsByRow);
+                }
+*/
 		return $result;
     }
-
+/*
+    protected function getOptimizedReferences($cellRefsByRow)
+    {
+    }
+*/
     /*
      * Get the hashcode for this object
      *

@@ -181,6 +181,13 @@ class PHPExcel_Chart
 	 */
 	private $_useSecondaryYAxis = false;
 
+        /**
+         * Secondary Y-axis
+         * Note : no checks are performed if this model contains 2 dataseries or is the right type
+         * Set to false if not used (default)
+         * @var integer
+        */
+        private $_secondaryYAxisLabel = false;
 	/**
 	 * Create a new PHPExcel_Chart
 	 */
@@ -240,6 +247,19 @@ class PHPExcel_Chart
                 $this->_useSecondaryYAxis = true;
 		return $this;
 	}
+
+        /**
+        * Set the secondary Y-Axis label
+        * @param PHPExcel_Chart_Title $secondaryYAxisLabel
+        * @return PHPExcel_Chart
+        *
+        */
+        public function setSecondaryYAxisLabel($secondaryYAxisLabel)
+        {
+            $this->_secondaryYAxisLabel = $secondaryYAxisLabel;
+            return $this;
+        }
+
 	
 	/**
 	* Get the secondary Y-Axis
@@ -258,6 +278,17 @@ class PHPExcel_Chart
              }
              
 	}
+
+       /**
+       * Get the secondary Y-Axis Label
+       * @return PHPExcel_Chart_Title
+       *
+       */
+       public function getSecondaryYAxisLabel()
+       {
+           return $this->_secondaryYAxisLabel;
+        }
+
 	
 	/**
 	* Get the secondary X-Axis
