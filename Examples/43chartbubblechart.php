@@ -33,7 +33,7 @@ $objWorksheet->fromArray(
 //        Data values
 //        Data Marker
 $dataSeriesLabels = array(
-    new PHPExcel_Chart_DataSeriesValues('String', $sheetname.'!$B$1', NULL, 1),
+    new PHPExcel_Chart_DataSeriesValues('String', $sheetname.'!$B$2:$B$5', NULL, 1),
 );
 //    Set the X-Axis Labels
 $xAxisTickValues = array(
@@ -55,6 +55,11 @@ $dataSeriesSizes = array(
     new PHPExcel_Chart_DataSeriesValues('Number', $sheetname.'!$D$2:$D$5', NULL, 1),
 );
 
+// Bubble labels
+$dataSeriesLabels  = array(new PHPExcel_Chart_DataSeriesValues('String', $sheetname.'!$A$2:$A$5', NULL, $rowcount));
+
+// Bubble scale
+$bubbleScale = 100;
 
 //    Build the dataseries
 $series = new PHPExcel_Chart_DataSeries(
@@ -68,10 +73,18 @@ $series = new PHPExcel_Chart_DataSeries(
     NULL,                                          // smooth line
     PHPExcel_Chart_DataSeries::STYLE_LINEMARKER,   // plotStyle
     $dataSeriesSizes                               // BubbleChartSizea
+    $dataSeriesLabels,                             // BubbleChartLabels
+    $bubbleScale                                   // bubble scale
 );
 
+
+// locate the labels on the right
+$layout =  new PHPExcel_Chart_Layout();
+$layout->setDataLabelPosition(PHPExcel_Chart_Layout::LABEL_POS_RIGHT);
+$layout->setShowVal(1);
+
 //    Set the series in the plot area
-$plotArea = new PHPExcel_Chart_PlotArea(NULL, array($series));
+$plotArea = new PHPExcel_Chart_PlotArea($layout, array($series));
 //    Set the chart legend
 $legend = new PHPExcel_Chart_Legend(PHPExcel_Chart_Legend::POSITION_TOPRIGHT, NULL, false);
 
