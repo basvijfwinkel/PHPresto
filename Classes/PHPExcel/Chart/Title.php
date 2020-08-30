@@ -18,75 +18,106 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * @category	PHPExcel
- * @package		PHPExcel_Chart
- * @copyright	Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
- * @license		http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt	LGPL
- * @version		##VERSION##, ##DATE##
+ * @category    PHPExcel
+ * @package        PHPExcel_Chart
+ * @copyright    Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @license        http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt    LGPL
+ * @version        ##VERSION##, ##DATE##
  */
 
 
 /**
  * PHPExcel_Chart_Title
  *
- * @category	PHPExcel
- * @package		PHPExcel_Chart
- * @copyright	Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
+ * @category    PHPExcel
+ * @package        PHPExcel_Chart
+ * @copyright    Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
 class PHPExcel_Chart_Title
 {
 
-	/**
-	 * Title Caption
-	 *
-	 * @var string
-	 */
-	private $_caption = null;
+    /**
+     * Title Caption
+     *
+     * @var string
+     */
+    private $_caption = null;
 
-	/**
-	 * Title Layout
-	 *
-	 * @var PHPExcel_Chart_Layout
-	 */
-	private $_layout = null;
+    /**
+     * Title Layout
+     *
+     * @var PHPExcel_Chart_Layout
+     */
+    private $_layout = null;
 
-	/**
-	 * Create a new PHPExcel_Chart_Title
-	 */
-	public function __construct($caption = null, PHPExcel_Chart_Layout $layout = null)
-	{
-		$this->_caption = $caption;
-		$this->_layout = $layout;
-	}
+    /**
+     * Title Font
+     *
+     * @var PHPExcel_Style_Font
+    */
+    private $font = null;
 
-	/**
-	 * Get caption
-	 *
-	 * @return string
-	 */
-	public function getCaption() {
-		return $this->_caption;
-	}
+    /**
+     * Create a new PHPExcel_Chart_Title
+     */
+    public function __construct($caption = null, PHPExcel_Chart_Layout $layout = null)
+    {
+        $this->_caption = $caption;
+        $this->_layout = $layout;
+        $this->font = new PHPExcel_Style_Font();
+    }
 
-	/**
-	 * Set caption
-	 *
-	 * @param string $caption
+    /**
+     * Get caption
+     *
+     * @return string
+     */
+    public function getCaption()
+    {
+        return $this->_caption;
+    }
+
+    /**
+     * Set caption
+     *
+     * @param string $caption
      * @return PHPExcel_Chart_Title
-	 */
-	public function setCaption($caption = null) {
-		$this->_caption = $caption;
-        
+     */
+    public function setCaption($caption = null)
+    {
+        $this->_caption = $caption;
         return $this;
-	}
+    }
 
-	/**
-	 * Get Layout
-	 *
-	 * @return PHPExcel_Chart_Layout
-	 */
-	public function getLayout() {
-		return $this->_layout;
-	}
+    /**
+     * Get Layout
+     *
+     * @return PHPExcel_Chart_Layout
+     */
+    public function getLayout()
+    {
+        return $this->_layout;
+    }
 
+    /**
+     * Get font
+     *
+     * @return PHPExcel_Style_Font
+     */
+    public function getFont()
+    {
+        return $this->font;
+    }
+
+    /**
+     * Set font
+     *
+     * @param PHPExcel_Style_Font $font
+     * @return PHPExcel_Chart_Title
+     */
+    public function setFont(PHPExcel_Style_Font $font = null)
+    {
+        $this->font = $font;
+        return $this;
+    }
 }
