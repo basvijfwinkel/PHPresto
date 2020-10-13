@@ -26,7 +26,7 @@
  */
 
 
-require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/trend/bestFitClass.php';
+require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/trend/BestFit.php';
 
 
 /**
@@ -36,7 +36,7 @@ require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/trend/bestFitClass.php';
  * @package    PHPExcel_Shared_Trend
  * @copyright  Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
-class PHPExcel_Power_Best_Fit extends PHPExcel_Best_Fit
+class PowerBestFit extends BestFit
 {
 	/**
 	 * Algorithm type to use for best-fit

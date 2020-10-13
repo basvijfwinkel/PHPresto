@@ -33,7 +33,7 @@
  * @package    PHPExcel_Shared_Trend
  * @copyright  Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
-class PHPExcel_Best_Fit
+class BestFit
 {
 	/**
 	 * Indicator flag for a calculation error

@@ -1,5 +1,5 @@
 <?php
-require_once 'Properties.php';
+require_once 'ChartProperties.php';
 /**
  * Created by PhpStorm.
  * User: Wiktor Trzonkowski
@@ -8,7 +8,7 @@ require_once 'Properties.php';
  */
 
 class PHPExcel_Chart_GridLines extends
-  PHPExcel_Properties {
+  ChartProperties {
 
   /**
    * Properties of Class:

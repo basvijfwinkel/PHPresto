@@ -26,7 +26,7 @@
  */
 
 
-require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/trend/bestFitClass.php';
+require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/trend/BestFit.php';
 require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/JAMA/Matrix.php';
 
 
@@ -37,7 +37,7 @@ require_once PHPEXCEL_ROOT . 'PHPExcel/Shared/JAMA/Matrix.php';
  * @package    PHPExcel_Shared_Trend
  * @copyright  Copyright (c) 2006 - 2014 PHPExcel (http://www.codeplex.com/PHPExcel)
  */
-class PHPExcel_Polynomial_Best_Fit extends PHPExcel_Best_Fit
+class PolynomialBestFit extends BestFit
 {
 	/**
 	 * Algorithm type to use for best-fit

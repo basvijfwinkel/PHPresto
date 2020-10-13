@@ -1,5 +1,5 @@
 <?php
-require_once 'Properties.php';
+require_once 'ChartProperties.php';
 
 /**
  * Created by PhpStorm.
@@ -9,7 +9,7 @@ require_once 'Properties.php';
  */
 
 class PHPExcel_Chart_Axis extends
-  PHPExcel_Properties {
+  ChartProperties {
 
   /**
    * Axis Number
