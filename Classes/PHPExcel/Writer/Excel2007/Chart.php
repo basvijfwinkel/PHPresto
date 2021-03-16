@@ -104,6 +104,8 @@ class PHPExcel_Writer_Excel2007_Chart extends
     }
     else
     {
+error_log('#################');
+error_log($pChart->getSecondaryYAxisLabel());
         $this->_writePlotAreaSecondaryAxis(
             $pChart->getPlotArea(),
             $pChart->getXAxisLabel(),

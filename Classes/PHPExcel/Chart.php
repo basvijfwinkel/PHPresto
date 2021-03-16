@@ -187,7 +187,7 @@ class PHPExcel_Chart
          * Set to false if not used (default)
          * @var integer
         */
-        private $_secondaryYAxisLabel = false;
+        private $_secondaryYAxisLabel = NULL;
 	/**
 	 * Create a new PHPExcel_Chart
 	 */
