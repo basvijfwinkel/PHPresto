@@ -418,7 +418,15 @@ class PHPresto
             {
                 foreach($decodedJson->{'data'} as $entry)
                 {
-                    file_put_contents($this->storageFile, implode($this->seperator,$entry)."\n", FILE_APPEND);
+                    // jsonencode and qoute fields that are an array
+                    $outputstring = "";                                 
+                    foreach($entry as $fieldindex => $field)            
+                    {                                                   
+                        if ($fieldindex > 0) { $outputstring .= $this->seperator; }
+                        if (is_array($field)) { $field = '"'.json_encode($field).'"'; }
+                        $outputstring .= $field;
+                    }
+                    file_put_contents($this->storageFile, $outputstring."\n", FILE_APPEND);
                     $this->lineswritten++;
                 }
             }
